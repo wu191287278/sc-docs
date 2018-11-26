@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <link href="https://cdn.bootcss.com/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcss.com/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css" rel="stylesheet">
+    <style type="text/css">
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<section style="height: 50px;">
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="javascript:void(0)">Sc-Docs</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <div class="navbar-form navbar-right">
+                    <div class="form-group">
+                        <input type="text" id="filePath" class="form-control" size="50px"
+                               placeholder="File path">
+                    </div>
+                    <button type="button" class="btn btn-default" onclick="openFile()">Open</button>
+                    <button type="button" class="btn btn-default">Save</button>
+                </div>
+
+            </div>
+        </div>
+    </nav>
+</section>
+<div class="row" style="height: 100%">
+    <div class="col-xs-2" style="height: 100%;padding-right: 0;padding-top: 10px;overflow: auto">
+        <div id="tree" style="width:100%;"></div>
+    </div>
+    <div class="col-xs-10" style="height: 100%;padding-top: 10px">
+        <div id="container" style="width:100%;height:100%"></div>
+    </div>
+</div>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.14.3/min/vs/loader.js"></script>
+<script src="https://cdn.bootcss.com/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js"></script>
+<script>
+
+    var extensions = {
+        "json": "json",
+        "sql": "sql",
+        "yml": "yaml",
+        "yaml": "json",
+        "md": "markdown",
+        "txt": "text",
+        "adoc": "text",
+        "java": "java",
+        "php": "php",
+        "ruby": "ruby",
+        "js": "javascript",
+        "css": "css",
+        "html": "html"
+    };
+
+    function loadFile() {
+        var hash = window.location.hash;
+        if (hash && hash.length > 1) {
+            var index = hash.lastIndexOf(".");
+            var language = "text";
+
+            if (index !== -1) {
+                var extension = hash.substr(index + 1);
+                language = extensions[extension.toLocaleLowerCase()];
+                if (!language) {
+                    window.location.href = hash.substr(1);
+                    return;
+                }
+            }
+
+
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    loadEditor({value: xhr.responseText, language: language});
+                } else {
+                    alert(xhr.status);
+                    defaultEditor();
+                }
+            };
+
+            xhr.open("get", hash.substr(1));
+            xhr.send(null);
+
+        } else {
+            defaultEditor();
+        }
+
+        document.getElementById("filePath").value = hash.substr(1);
+    }
+
+    function defaultEditor() {
+        loadEditor({
+            value: "Hello",
+            language: 'txt'
+        });
+    }
+
+    function openFile() {
+        window.location.href = "/monaco/#" + document.getElementById("filePath").value;
+        loadFile();
+    }
+
+    function loadEditor(option) {
+        let container = document.getElementById('container');
+        container.innerHTML = "";
+        require.config({paths: {'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.14.3/min/vs/'}});
+        require(['vs/editor/editor.main'], function () {
+            var editor = monaco.editor.create(container, option);
+
+            window.onresize = function () {
+                editor.layout();
+            };
+        });
+    }
+
+
+    function loadTree() {
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                $('#tree').treeview({
+                    data: [JSON.parse(xhr.responseText)], onNodeSelected: function (event, data) {
+                        if (!data["nodes"]) {
+                            window.location.href = "/monaco/#" + data["href"];
+                            loadFile();
+                        }
+                        console.log(data)
+                    }
+                });
+            } else {
+                alert(xhr.status);
+            }
+        };
+
+        xhr.open("get", "/fileExplore/tree");
+        xhr.send(null);
+    }
+
+    loadFile();
+    $('#tree').treeview({
+        data: [{"text": "/"}], onNodeSelected: function (event, data) {
+            loadTree();
+        }
+    });
+</script>
+</body>
+</html>

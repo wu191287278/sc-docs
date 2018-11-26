@@ -1,0 +1,36 @@
+server:
+  port: 8080
+  max-http-header-size: 655350
+
+logging:
+  level:
+    root: info
+
+hystrix:
+  threadpool:
+    default:
+      #并发执行的最大线程数，默认10
+      coreSize: 200
+      #BlockingQueue的最大队列数
+      maxQueueSize: 200
+      #即使maxQueueSize没有达到，达到queueSizeRejectionThreshold该值后，请求也会被拒绝
+      queueSizeRejectionThreshold: 200
+  command:
+    default:
+      execution:
+        timeout:
+          enabled: true
+        isolation:
+          strategy: THREAD
+          semaphore:
+            maxConcurrentRequests: 1000
+          thread:
+            timeoutInMilliseconds: 60000
+
+ribbon:
+  ConnectTimeout: 3000
+  ReadTimeout: 60000
+
+management:
+  security:
+    enabled: false

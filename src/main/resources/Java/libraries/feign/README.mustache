@@ -1,0 +1,67 @@
+## Getting Started
+
+Please follow the [installation](#installation) instruction and execute the following Java code:
+
+```java
+package {{{groupId}}};
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.netflix.feign.EnableFeignClients;
+
+@SpringBootApplication
+@EnableFeignClients(basePackages = {"{{{groupId}}}"})
+public class Application {
+
+    public static void main(String[] args){
+        SpringApplication.run(Application.class, args);
+    }
+
+}
+
+```
+
+## Documentation for API Endpoints
+
+All URIs are relative to *{{basePath}}*
+
+Class | Method | HTTP request | Description
+------------ | ------------- | ------------- | -------------
+{{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}*{{classname}}* | [**{{operationId}}**]({{apiDocPath}}{{classname}}.md#{{operationId}}) | **{{httpMethod}}** {{path}} | {{#summary}}{{summary}}{{/summary}}
+{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
+
+## Documentation for Models
+
+{{#models}}{{#model}} - [{{classname}}]({{modelDocPath}}{{classname}}.md)
+{{/model}}{{/models}}
+
+## Documentation for Authorization
+
+{{^authMethods}}All endpoints do not require authorization.
+{{/authMethods}}Authentication schemes defined for the API:
+{{#authMethods}}### {{name}}
+
+{{#isApiKey}}- **Type**: API key
+- **API key parameter name**: {{keyParamName}}
+- **Location**: {{#isKeyInQuery}}URL query string{{/isKeyInQuery}}{{#isKeyInHeader}}HTTP header{{/isKeyInHeader}}
+{{/isApiKey}}
+{{#isBasic}}- **Type**: HTTP basic authentication
+{{/isBasic}}
+{{#isOAuth}}- **Type**: OAuth
+- **Flow**: {{flow}}
+- **Authorization URL**: {{authorizationUrl}}
+- **Scopes**: {{^scopes}}N/A{{/scopes}}
+{{#scopes}}  - {{scope}}: {{description}}
+{{/scopes}}
+{{/isOAuth}}
+
+{{/authMethods}}
+
+## Recommendation
+
+It's recommended to create an instance of `ApiClient` per thread in a multithreaded environment to avoid any potential issues.
+
+## Author
+
+{{#apiInfo}}{{#apis}}{{^hasMore}}{{infoEmail}}
+{{/hasMore}}{{/apis}}{{/apiInfo}}

@@ -1,0 +1,86 @@
+# {{classname}}{{#description}}
+{{description}}{{/description}}
+
+All URIs are relative to *{{basePath}}*
+
+Method | HTTP request | Description
+------------- | ------------- | -------------
+{{#operations}}{{#operation}}[**{{operationId}}**]({{classname}}.md#{{operationId}}) | **{{httpMethod}}** {{path}} | {{#summary}}{{summary}}{{/summary}}
+{{/operation}}{{/operations}}
+
+{{#operations}}
+{{#operation}}
+<a name="{{operationId}}"></a>
+
+
+# **{{operationId}}**
+ <!--{{#returnType}}{{returnType}} {{/returnType}}{{operationId}}({{#allParams}}{{#isPrimitiveType}}**{{dataType}}**{{/isPrimitiveType}}{{^isPrimitiveType}}{{#isFile}}**{{dataType}}**{{/isFile}}{{^isFile}}[**{{dataType}}**]({{baseType}}.md){{/isFile}}{{/isPrimitiveType}} {{{paramName}}}{{#hasMore}}, {{/hasMore}}{{/allParams}})-->
+
+{{summary}}{{#notes}}
+
+{{notes}}{{/notes}}
+
+### feign
+```java
+@RequestMapping(value = "{{{path}}}",{{#singleContentTypes}}produces = "{{{vendorExtensions.x-accepts}}}",consumes = "{{{vendorExtensions.x-contentType}}}",{{/singleContentTypes}}{{^singleContentTypes}}{{#hasProduces}}produces = { {{#produces}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/produces}} }, {{/hasProduces}}{{#hasConsumes}}consumes = { {{#consumes}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/consumes}} },{{/hasConsumes}}{{/singleContentTypes}}method = RequestMethod.{{httpMethod}})
+{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}} {{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>headerParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}},{{/hasMore}}{{/allParams}});
+```
+
+### android
+```android
+{{#formParams}}
+    {{#-first}}
+        {{#isMultipart}}@Multipart{{/isMultipart}}{{^isMultipart}}@FormUrlEncoded{{/isMultipart}}
+    {{/-first}}
+{{/formParams}}
+{{^formParams}}
+    {{#prioritizedContentTypes}}
+        {{#-first}}
+            @Headers({"Content-Type:{{mediaType}}"})
+        {{/-first}}
+    {{/prioritizedContentTypes}}
+{{/formParams}}
+@{{httpMethod}}("{{{path}}}")
+{{^doNotUseRx}}Observable{{/doNotUseRx}}{{#doNotUseRx}}Observable{{/doNotUseRx}}<{{#isResponseFile}}ResponseBody{{/isResponseFile}}{{^isResponseFile}}{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Object{{/returnType}}{{/isResponseFile}}> {{operationId}}({{^allParams}});{{/allParams}}{{#allParams}}{{>libraries/retrofit2/queryParams}}{{>libraries/retrofit2/pathParams}}{{>libraries/retrofit2/headerParams}}{{>libraries/retrofit2/bodyParams}}{{>libraries/retrofit2/formParams}}{{#hasMore}}, {{/hasMore}}{{^hasMore}});{{/hasMore}}{{/allParams}}
+```
+
+### curl
+```shell
+curl -X {{httpMethod}} {{#consumes}}-H "Content-Type: {{{mediaType}}}" {{/consumes}}{{^consumes}}{{/consumes}}{{#produces}}-H "Accept: {{{mediaType}}}" {{/produces}}{{^produces}}{{/produces}}{{#allParams}}{{#isBodyParam}}-d '{ }'{{/isBodyParam}} {{#isFile}}-F filename={{baseName}}{{/isFile}}{{/allParams}}"{{basePath}}/{{{path}}}?{{#allParams}}{{paramName}}={{#defaultValue}}{{{defaultValue}}}{{/defaultValue}}{{#hasMore}}&{{/hasMore}}{{/allParams}}"
+```
+
+
+### Example
+```java
+public void {{operationId}}Test() {
+{{#allParams}}
+    {{{dataType}}} {{paramName}} = {{{example}}};  // {{{dataType}}} | {{{description}}}
+{{/allParams}}
+// {{#returnType}}{{{returnType}}} response = {{/returnType}}api.{{operationId}}({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+
+// TODO: test validations
+}
+```
+
+### Parameters
+{{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#-last}}
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------{{/-last}}{{/allParams}}
+{{#allParams}} **{{paramName}}** | {{#isPrimitiveType}}**{{dataType}}**{{/isPrimitiveType}}{{^isPrimitiveType}}{{#isFile}}**{{dataType}}**{{/isFile}}{{^isFile}}[**{{dataType}}**]({{baseType}}.md){{/isFile}}{{/isPrimitiveType}}| {{description}} |{{^required}} [optional]{{/required}}{{#defaultValue}} [default to {{defaultValue}}]{{/defaultValue}}{{#allowableValues}} [enum: {{#values}}{{{.}}}{{^-last}}, {{/-last}}{{/values}}]{{/allowableValues}}
+{{/allParams}}
+
+### Return type
+
+{{#returnType}}{{#returnTypeIsPrimitive}}**{{returnType}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}[**{{returnType}}**]({{returnBaseType}}.md){{/returnTypeIsPrimitive}}{{/returnType}}{{^returnType}}null (empty response body){{/returnType}}
+
+### Authorization
+
+{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{name}}](../README.md#{{name}}){{^-last}}, {{/-last}}{{/authMethods}}
+
+### HTTP request headers
+
+ - **Content-Type**: {{#consumes}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
+ - **Accept**: {{#produces}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/produces}}{{^produces}}Not defined{{/produces}}
+
+{{/operation}}
+{{/operations}}

@@ -1,0 +1,45 @@
+package {{package}};
+
+{{#imports}}import {{import}};
+{{/imports}}
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Arrays;
+
+/**
+* API tests for {{classname}}
+*/
+@SpringBootTest(classes = {{basePackage}}.Application.class)
+@RunWith(SpringJUnit4ClassRunner.class)
+public class {{classname}}Test {
+
+    @Autowired
+    private {{classname}} api;
+
+    {{#operations}}
+    {{#operation}}
+    /**
+     * {{summary}}
+     *
+     * {{notes}}
+     */
+    @Test
+    public void {{operationId}}Test() {
+        {{#allParams}}
+        {{{dataType}}} {{paramName}} = {{{example}}};  // {{{dataType}}} | {{{description}}}
+        {{/allParams}}
+        // {{#returnType}}{{{returnType}}} response = {{/returnType}}api.{{operationId}}({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+
+        // TODO: test validations
+    }
+    {{/operation}}
+    {{/operations}}
+}
