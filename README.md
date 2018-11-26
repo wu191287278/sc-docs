@@ -22,24 +22,54 @@ Then manually install the following JARs:
 
 * target/sc-docs.jar
 
+## Download
+
+```
+curl -o sc-docs.jar -L https://github.com/wu191287278/sc-docs/releases/download/v1.0/sc-docs.jar
+```
+
+## Java docs Example
+```java
+/**
+ * search interface
+ */
+@RestController
+@RequestMapping(value="/search")
+public class SearchController {
+
+    /**
+     * search user
+     *
+     * @param user nickname
+     * @throws No user found
+     * @return users
+     */
+    @GetMapping(value = "searchUser")
+    public List<User> searchUser(@RequestParam(value = "nickName") String nickname) throws NotFoundException{
+        return Arrays.as(User);
+    }
+
+}
+```
+
 
 ## Getting Started
 
 Please follow the [installation](#installation) instruction and execute the following shell code:
 
 ```shell
-java -jar ./target/sc-docs.jar -i project -o ./docs
+java -jar sc-docs.jar -i sourceDirectory -o ./docs
 ```
 
 ## Start Server
 
 ```shell
-java -jar ./target/sc-docs.jar serve ./docs
+java -jar sc-docs.jar serve ./docs
 ```
 
 ## Other
 ```
-usage: java -jar ./target/sc-docs.jar  [-i <arg>] [-o <arg>] [-serve <arg>] [-t]
+usage: java -jar sc-docs.jar  [-i <arg>] [-o <arg>] [-serve <arg>] [-t]
 -i,--input <arg>    Source directory
 -o,--output <arg>   Output directory
 -serve <arg>        Start server
@@ -60,5 +90,5 @@ Name | Description
 ## Using the environment example
 
 ```shell
-java -Ddocs.projectName.host=localhost:8080 -Ddocs.projectName.scheme=http -Ddocs.projectName.info.title=demo -Dbaidu.appId=appid -Dbaidu.securityKey=securityKey  -jar ./target/sc-docs.jar -i sourceDirectory -o outDirectory -t
+java -Ddocs.projectName.host=localhost:8080 -Ddocs.projectName.scheme=http -Ddocs.projectName.info.title=demo -Dbaidu.appId=appid -Dbaidu.securityKey=securityKey  -jar sc-docs.jar -i sourceDirectory -o outDirectory -t
 ```
