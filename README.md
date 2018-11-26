@@ -40,7 +40,7 @@ public class SearchController {
     /**
      * search user
      *
-     * @param user nickname
+     * @param nickName user nickname
      * @throws No user found
      * @return users
      */
