@@ -1,63 +1,64 @@
-## Getting Started
+# sc-docs
 
-Please follow the [installation](#installation) instruction and execute the following Java code:
+## Introduction
 
-```java
-package io.swagger;
+sc-docs is a [swagger](https://swagger.io/specification/v2/) tools that can be generated according to the [Java docs specification](https://docs.oracle.com/javase/1.5.0/docs/tooldocs/windows/javadoc.html)
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.netflix.feign.EnableFeignClients;
 
-@SpringBootApplication
-@EnableFeignClients(basePackages = {"io.swagger"})
-public class Application {
+## Requirements
 
-    public static void main(String[] args){
-        SpringApplication.run(Application.class, args);
-    }
+Building the library requires [Maven](https://maven.apache.org/) and [Java8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) to be installed.
 
-}
 
+## installation
+
+At first generate the JAR by executing:
+
+```shell
+mvn package
 ```
 
-## Documentation for API Endpoints
+Then manually install the following JARs:
 
-All URIs are relative to *http://localhost*
-
-Class | Method | HTTP request | Description
------------- | ------------- | ------------- | -------------
-*AdminControllerApi* | [**changePosition**](docs/AdminControllerApi.md#changePosition) | **PUT** /admin/changePosition | Change the offset of binlog
-*AdminControllerApi* | [**rebuild**](docs/AdminControllerApi.md#rebuild) | **PUT** /admin/rebuild | Rebuilding Elastic Search Index
-*AdminControllerApi* | [**recognizeUnClassicResource**](docs/AdminControllerApi.md#recognizeUnClassicResource) | **PUT** /admin/recognizeUnClassicResource | Identify unclassified images
-*SearchControllerApi* | [**clearGeoInfo**](docs/SearchControllerApi.md#clearGeoInfo) | **PUT** /search/v2/clearGeoInfo | 
-*SearchControllerApi* | [**hunt**](docs/SearchControllerApi.md#hunt) | **GET** /search/v2/hunt | 
-*SearchControllerApi* | [**invite**](docs/SearchControllerApi.md#invite) | **PUT** /search/v2/invite/{resourceId} | Editor invitation
-*SearchControllerApi* | [**nearbyUser2**](docs/SearchControllerApi.md#nearbyUser2) | **GET** /search/v2/findNearbyUsers | 
-*SearchControllerApi* | [**recommend**](docs/SearchControllerApi.md#recommend) | **PUT** /search/v2/recommend/{resourceId} | User recommendation invitation
-*SearchControllerApi* | [**search2**](docs/SearchControllerApi.md#search2) | **GET** /search/v2/search | 
-*SearchControllerApi* | [**sql**](docs/SearchControllerApi.md#sql) | **GET** /search/v2/_sql | 
-*SearchControllerApi* | [**suggest**](docs/SearchControllerApi.md#suggest) | **GET** /search/v2/suggest | Search suggestion interface, the front-end processing is not very good, resulting in multiple queries in the background, affecting performance. Direct fuse off without treatment
+* target/sc-docs.jar
 
 
-## Documentation for Models
+## Getting Started
 
- - [PageInfo](docs/PageInfo.md)
- - [PageInfoUser](docs/PageInfoUser.md)
- - [ResponseDTO](docs/ResponseDTO.md)
- - [User](docs/User.md)
+Please follow the [installation](#installation) instruction and execute the following shell code:
 
+```shell
+java -jar ./target/sc-docs.jar -i project -o ./docs
+```
 
-## Documentation for Authorization
+## Start Server
 
-All endpoints do not require authorization.
-Authentication schemes defined for the API:
+```shell
+java -jar ./target/sc-docs.jar serve ./docs
+```
 
-## Recommendation
+## Other
+```
+usage: java -jar ./target/sc-docs.jar  [-i <arg>] [-o <arg>] [-serve <arg>] [-t]
+-i,--input <arg>    Source directory
+-o,--output <arg>   Output directory
+-serve <arg>        Start server
+-t,--translation    Translate description
+```
 
-It's recommended to create an instance of `ApiClient` per thread in a multithreaded environment to avoid any potential issues.
+## Support environment variables
 
-## Author
+Name | Description
+---|---
+-Ddocs.**projectName**.host=localhost|swagger.json host
+-Ddocs.**projectName**.basePath=/|swagger.json basePath
+-Ddocs.**projectName**.scheme=http|swagger.json scheme
+-Ddocs.**projectName**.info.title=demo|swagger.json info.title
+-Dbaidu.appId=appId|[Baidu](http://api.fanyi.baidu.com/api/trans/product/desktop?req=developer) translation appid
+-Dbaidu.securityKey=securityKey|[Baidu](http://api.fanyi.baidu.com/api/trans/product/desktop?req=developer) translation securityKey
 
+## Using the environment example
 
-
+```shell
+java -Ddocs.projectName.host=localhost:8080 -Ddocs.projectName.scheme=http -Ddocs.projectName.info.title=demo -Dbaidu.appId=appid -Dbaidu.securityKey=securityKey  -jar ./target/sc-docs.jar -i sourceDirectory -o outDirectory -t
+```
