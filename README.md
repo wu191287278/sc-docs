@@ -40,12 +40,12 @@ public class SearchController {
     /**
      * search user
      *
-     * @param nickName user nickname
+     * @param nickname user nickname
      * @throws No user found
      * @return users
      */
     @GetMapping(value = "searchUser")
-    public List<User> searchUser(@RequestParam(value = "nickName") String nickname) throws NotFoundException{
+    public List<User> searchUser(@RequestParam(value = "nickname") String nickname) throws NotFoundException{
         return Arrays.as(User);
     }
 
