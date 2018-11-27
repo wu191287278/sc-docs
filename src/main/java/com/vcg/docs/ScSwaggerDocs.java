@@ -350,7 +350,7 @@ public class ScSwaggerDocs {
     }
 
     public static void main(String[] args) throws Exception {
-//        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/vc-chat", "-o", "./docs"};
+//        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/vc-chat2", "-o", "./docs"};
 //        args = new String[]{"-serve", "./docs"};
         Options options = new Options();
 

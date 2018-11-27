@@ -34,7 +34,7 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
     private final Set<String> controllers = new HashSet<>(Arrays.asList("Controller", "RestController", "FeignClient"));
 
     private final Set<String> mappings = new HashSet<>(Arrays.asList("RequestMapping",
-            "GetMapping", "PutMapping", "DeleteMapping", "PostMapping"));
+            "GetMapping", "PutMapping", "DeleteMapping", "PostMapping","FeignClient"));
 
     private final Map<String, String> methods = ImmutableMap.of("GetMapping", "get",
             "PostMapping", "post",
@@ -118,6 +118,7 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
                 .stream()
                 .filter(a -> controllers.contains(a.getNameAsString()))
                 .collect(Collectors.toList());
+
         if (annotationExprs.isEmpty()) return;
         Tag tag = new Tag()
                 .name(n.getNameAsString());
