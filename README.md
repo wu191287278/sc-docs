@@ -25,7 +25,7 @@ Then manually install the following JARs:
 ## Download
 
 ```
-curl -o sc-docs.jar -L https://github.com/wu191287278/sc-docs/releases/download/v1.1/sc-docs.jar
+curl -o sc-docs.jar -L https://github.com/wu191287278/sc-docs/releases/download/v1.3/sc-docs.jar
 ```
 
 ## Java docs Example
