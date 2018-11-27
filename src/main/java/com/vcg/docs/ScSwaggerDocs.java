@@ -83,7 +83,8 @@ public class ScSwaggerDocs {
         List<File> sourceDirectories = getSourceDirectories(sourceDirectory, basePackage);
         Map<String, Swagger> swaggerMap = new TreeMap<>();
         for (File filteredDirectory : filteredDirectories) {
-            String projectPath = filteredDirectory.getAbsolutePath().replace("src/main/java", "");
+            String projectPath = filteredDirectory.getAbsolutePath().replace("src/main/java", "")
+                    .replace("src\\main\\java","");
 
             CombinedTypeSolver typeSolver = new CombinedTypeSolver();
             for (File sourceFile : sourceDirectories) {
@@ -342,6 +343,7 @@ public class ScSwaggerDocs {
     private void copyDependencies(String sourceDirectory) {
         System.setProperty("maven.multiModuleProjectDirectory", sourceDirectory);
         try {
+            log.info("downloading maven...");
             MavenWrapperMain.main(new String[]{"install", "-Dmaven.test.skip=true", "-f", sourceDirectory});
             MavenWrapperMain.main(new String[]{"dependency:copy-dependencies", "-f", sourceDirectory});
         } catch (Exception e) {
@@ -350,7 +352,7 @@ public class ScSwaggerDocs {
     }
 
     public static void main(String[] args) throws Exception {
-//        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/vc-chat2", "-o", "./docs"};
+        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/vc-chat2", "-o", "./docs"};
 //        args = new String[]{"-serve", "./docs"};
         Options options = new Options();
 
