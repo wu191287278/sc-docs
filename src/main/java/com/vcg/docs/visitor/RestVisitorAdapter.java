@@ -31,7 +31,7 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
 
     private ResolveSwaggerType resolveSwaggerType = new ResolveSwaggerType();
 
-    private final Set<String> controllers = new HashSet<>(Arrays.asList("Controller", "RestController"));
+    private final Set<String> controllers = new HashSet<>(Arrays.asList("Controller", "RestController", "FeignClient"));
 
     private final Set<String> mappings = new HashSet<>(Arrays.asList("RequestMapping",
             "GetMapping", "PutMapping", "DeleteMapping", "PostMapping"));
@@ -139,21 +139,34 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
         for (AnnotationExpr annotation : classOrInterfaceDeclaration.getAnnotations()) {
             String annotationName = annotation.getNameAsString();
             if (mappings.contains(annotationName)) {
-                if (annotation instanceof SingleMemberAnnotationExpr) {
-                    SingleMemberAnnotationExpr singleMemberAnnotationExpr = (SingleMemberAnnotationExpr) annotation;
-                    request.setParentPath(singleMemberAnnotationExpr.getMemberValue().asStringLiteralExpr().asString());
-                }
-                if (annotation instanceof NormalAnnotationExpr) {
-                    for (MemberValuePair pair : annotation.asNormalAnnotationExpr().getPairs()) {
-                        String name = pair.getNameAsString();
-                        if ("path".equals(name) || "value".equals(name)) {
-                            List<String> values = parseAttribute(pair);
-                            request.setParentPath(values.isEmpty() ? null : values.get(0));
+                if ("FeignClient".equalsIgnoreCase(annotationName)) {
+                    if (annotation instanceof NormalAnnotationExpr) {
+                        for (MemberValuePair pair : annotation.asNormalAnnotationExpr().getPairs()) {
+                            String name = pair.getNameAsString();
+                            if ("path".equals(name)) {
+                                List<String> values = parseAttribute(pair);
+                                request.setParentPath(values.isEmpty() ? null : values.get(0));
+                            }
+                        }
+                    }
+                } else {
+                    if (annotation instanceof SingleMemberAnnotationExpr) {
+                        SingleMemberAnnotationExpr singleMemberAnnotationExpr = (SingleMemberAnnotationExpr) annotation;
+                        request.setParentPath(singleMemberAnnotationExpr.getMemberValue().asStringLiteralExpr().asString());
+                    }
+                    if (annotation instanceof NormalAnnotationExpr) {
+                        for (MemberValuePair pair : annotation.asNormalAnnotationExpr().getPairs()) {
+                            String name = pair.getNameAsString();
+                            if ("path".equals(name) || "value".equals(name)) {
+                                List<String> values = parseAttribute(pair);
+                                request.setParentPath(values.isEmpty() ? null : values.get(0));
+                            }
                         }
                     }
                 }
             }
         }
+
         for (AnnotationExpr annotation : n.getAnnotations()) {
             String annotationName = annotation.getNameAsString();
             if (mappings.contains(annotationName)) {

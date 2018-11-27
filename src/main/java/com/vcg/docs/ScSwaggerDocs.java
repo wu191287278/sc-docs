@@ -133,10 +133,10 @@ public class ScSwaggerDocs {
 
             if (!swagger.getPaths().isEmpty()) {
                 String projectName = new File(projectPath).getName();
-                String title = System.getProperty("docs."+projectName + ".info.title", projectName);
-                String host = System.getProperty("docs."+projectName + ".host", this.host);
-                String basePath = System.getProperty("docs."+projectName + ".basePath", "/");
-                String scheme = System.getProperty("docs."+projectName + ".scheme", "http");
+                String title = System.getProperty("docs." + projectName + ".info.title", projectName);
+                String host = System.getProperty("docs." + projectName + ".host", this.host);
+                String basePath = System.getProperty("docs." + projectName + ".basePath", "/");
+                String scheme = System.getProperty("docs." + projectName + ".scheme", "http");
                 swagger.getInfo().title(title);
                 swagger.host(host);
                 swagger.scheme(Scheme.valueOf(scheme.toUpperCase()));
@@ -342,6 +342,7 @@ public class ScSwaggerDocs {
     private void copyDependencies(String sourceDirectory) {
         System.setProperty("maven.multiModuleProjectDirectory", sourceDirectory);
         try {
+            MavenWrapperMain.main(new String[]{"install", "-Dmaven.test.skip=true", "-f", sourceDirectory});
             MavenWrapperMain.main(new String[]{"dependency:copy-dependencies", "-f", sourceDirectory});
         } catch (Exception e) {
             log.warn(e.getMessage());
@@ -349,7 +350,7 @@ public class ScSwaggerDocs {
     }
 
     public static void main(String[] args) throws Exception {
-//        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/vcg-community-parent", "-o", "./docs"};
+//        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/vc-chat", "-o", "./docs"};
 //        args = new String[]{"-serve", "./docs"};
         Options options = new Options();
 

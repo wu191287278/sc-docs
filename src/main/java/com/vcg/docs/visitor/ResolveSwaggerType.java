@@ -110,21 +110,22 @@ public class ResolveSwaggerType {
 
         }
 
-        if (declaredFields.size() == 0) {
-            List<ResolvedMethodDeclaration> allMethods = resolvedReferenceType.getAllMethods();
-            for (ResolvedMethodDeclaration method : allMethods) {
-                String getMethodName = method.getName();
-                if (!getMethodName.equals("getClass") && getMethodName.startsWith("get")
-                        && method.getTypeParameters().size() == 0) {
-                    String name = getMethodName.substring(3);
-                    if (name.length() > 1) {
-                        ResolvedType returnType = method.getReturnType();
-                        Property resolve = resolve(returnType);
-                        objectProperty.property(name.substring(0, 1).toLowerCase() + name.substring(1), resolve);
-                    }
-                }
-            }
-        }
+//
+//        if (declaredFields.size() == 0) {
+//            List<ResolvedMethodDeclaration> allMethods = resolvedReferenceType.getAllMethods();
+//            for (ResolvedMethodDeclaration method : allMethods) {
+//                String getMethodName = method.getName();
+//                if (!getMethodName.equals("getClass") && getMethodName.startsWith("get")
+//                        && method.getTypeParameters().size() == 0) {
+//                    String name = getMethodName.substring(3);
+//                    if (name.length() > 1) {
+//                        ResolvedType returnType = method.getReturnType();
+//                        Property resolve = resolve(returnType);
+//                        objectProperty.property(name.substring(0, 1).toLowerCase() + name.substring(1), resolve);
+//                    }
+//                }
+//            }
+//        }
 
         ResolvedReferenceTypeDeclaration typeDeclaration = resolvedReferenceType.getTypeDeclaration();
         if (typeDeclaration instanceof JavaParserClassDeclaration) {
