@@ -15,6 +15,8 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeS
 import com.github.javaparser.utils.SourceRoot;
 import com.google.common.collect.ImmutableMap;
 import com.vcg.docs.controller.FileExploreController;
+import com.vcg.docs.swaggerhub.SwaggerHubClient;
+import com.vcg.docs.swaggerhub.SwaggerHubRequest;
 import com.vcg.docs.translate.TransApi;
 import com.vcg.docs.visitor.ApiDocsGenerator;
 import com.vcg.docs.visitor.RestVisitorAdapter;
@@ -48,6 +50,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -84,7 +87,7 @@ public class ScSwaggerDocs {
         Map<String, Swagger> swaggerMap = new TreeMap<>();
         for (File filteredDirectory : filteredDirectories) {
             String projectPath = filteredDirectory.getAbsolutePath().replace("src/main/java", "")
-                    .replace("src\\main\\java","");
+                    .replace("src\\main\\java", "");
 
             CombinedTypeSolver typeSolver = new CombinedTypeSolver();
             for (File sourceFile : sourceDirectories) {
@@ -355,13 +358,13 @@ public class ScSwaggerDocs {
 //        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/vc-chat2", "-o", "./docs"};
 //        args = new String[]{"-serve", "./docs"};
         Options options = new Options();
-
         options.addOption(new Option("h", "help", false, "help"));
         options.addOption(new Option("i", "input", true, "Source directory"));
         options.addOption(new Option("o", "output", true, "Output directory"));
         options.addOption(new Option("t", "translation", false, "Translate description"));
         options.addOption(new Option("f", "format", true, "Formatted document eg: json,yaml,api,html,md"));
         options.addOption(new Option("serve", true, "Start server"));
+        options.addOption(new Option("upload", true, "Local file containing the API definition in json"));
         HelpFormatter hf = new HelpFormatter();
         try {
             CommandLineParser parser = new PosixParser();
@@ -384,6 +387,45 @@ public class ScSwaggerDocs {
                     for (String format : formats) {
                         scSwaggerDocsMojo.write(swagger, format, outDirectory + entry.getKey());
                     }
+                }
+            }
+
+            if (commandLine.hasOption("upload")) {
+                String filePath = commandLine.getOptionValue("upload");
+                String swagger = IOUtils.toString(URI.create("file://" + filePath));
+                String isPrivate = System.getProperty("swaggerhub.isPrivate");
+                String owner = System.getProperty("swaggerhub.owner");
+                String name = System.getProperty("swaggerhub.name");
+                String token = System.getProperty("swaggerhub.token");
+                String version = System.getProperty("swaggerhub.version");
+
+                String format = System.getProperty("swaggerhub.format");
+                SwaggerHubRequest swaggerHubRequest = new SwaggerHubRequest()
+                        .setSwagger(swagger)
+                        .setOwner(owner)
+                        .setToken(token)
+                        .setVersion(version)
+                        .setFormat(format == null ? "json" : format)
+                        .setName(name)
+                        .setPrivate(Boolean.parseBoolean(isPrivate));
+                if (owner == null || name == null || token == null || version == null) {
+                    throw new RuntimeException("Name|owner|name|token cannot be empty:\r\n" + swaggerHubRequest.toString());
+                }
+
+                log.info("Uploading...");
+                SwaggerHubClient swaggerHubClient = new SwaggerHubClient();
+                boolean isSuccess = false;
+                for (int i = 0; i < 3; i++) {
+                    isSuccess = swaggerHubClient.saveDefinition(swaggerHubRequest);
+                    if (isSuccess) {
+                        log.info("Uploaded successfully!");
+                        break;
+                    } else {
+                        Thread.sleep(1000);
+                    }
+                }
+                if (!isSuccess) {
+                    log.error("Upload failed, please try again");
                 }
             }
 
