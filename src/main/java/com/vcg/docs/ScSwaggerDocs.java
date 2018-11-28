@@ -392,7 +392,7 @@ public class ScSwaggerDocs {
 
             if (commandLine.hasOption("upload")) {
                 String filePath = commandLine.getOptionValue("upload");
-                String swagger = IOUtils.toString(URI.create("file://" + filePath));
+                String swagger = IOUtils.toString( new File(filePath).toURI());
                 String isPrivate = System.getProperty("swaggerhub.isPrivate");
                 String owner = System.getProperty("swaggerhub.owner");
                 String name = System.getProperty("swaggerhub.name");
