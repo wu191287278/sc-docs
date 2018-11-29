@@ -24,12 +24,14 @@ public class Swagger2OpenApi {
         JsonNode tags = getTags(swaggerNode);
         JsonNode servers = getServers(swaggerNode);
         JsonNode schemas = getSchemas(swaggerNode);
-        JsonNode paths = getPaths(swaggerNode, components);
+        JsonNode paths = getPaths(swaggerNode);
         JsonNode securityDefinitions = getSecurityDefinitions(swaggerNode);
         if (securityDefinitions != null) {
             components.set("securitySchemes", securityDefinitions);
         }
-        components.set("schemas", schemas);
+        if (schemas != null) {
+            components.set("schemas", schemas);
+        }
         objectNode.put("openapi", "3.0.0");
         objectNode.set("servers", servers);
         objectNode.set("info", info);
@@ -38,7 +40,9 @@ public class Swagger2OpenApi {
         objectNode.set("components", components);
 
         String result = objectMapper.writeValueAsString(objectNode)
-                .replace("#/definitions/", "#/components/schemas/");
+                .replace("#/definitions/", "#/components/schemas/")
+                .replace("«", "")
+                .replace("»", "");
         return objectMapper.readValue(result, JsonNode.class);
     }
 
@@ -76,7 +80,7 @@ public class Swagger2OpenApi {
         return jsonNode.get("securityDefinitions");
     }
 
-    private static JsonNode getPaths(JsonNode jsonNode, ObjectNode components) throws IOException {
+    private static JsonNode getPaths(JsonNode jsonNode) throws IOException {
         JsonNode paths = jsonNode.get("paths");
         for (Iterator<String> it = paths.fieldNames(); it.hasNext(); ) {
             String name = it.next();
@@ -87,17 +91,32 @@ public class Swagger2OpenApi {
                 ArrayNode parameters = (ArrayNode) methodNode.get("parameters");
                 ObjectNode bodyNode = null;
                 int bodyNodeIndex = 0;
+                ObjectNode fileNode = null;
+                int fileNodeIndex = 0;
                 for (int i = 0; i < parameters.size(); i++) {
                     ObjectNode parameterNode = (ObjectNode) parameters.get(i);
                     String in = parameterNode.get("in").asText();
+
+                    //防止 get方法携带body体
+                    if ("get".equalsIgnoreCase(method) && "body".equalsIgnoreCase(in)) {
+                        parameterNode.put("in", "query");
+                        in = "query";
+                    }
+
+                    JsonNode type = parameterNode.remove("type");
                     if ("body".equalsIgnoreCase(in)) {
                         bodyNodeIndex = i;
                         bodyNode = parameterNode;
+                    } else if (type != null && "file".equalsIgnoreCase(type.asText())) {
+                        fileNode = parameterNode;
+                        fileNodeIndex = i;
                     } else {
-                        JsonNode type = parameterNode.remove("type");
                         JsonNode format = parameterNode.remove("format");
                         JsonNode aDefault = parameterNode.remove("default");
                         JsonNode example = parameterNode.remove("example");
+                        JsonNode items = parameterNode.remove("items");
+                        JsonNode enums = parameterNode.remove("enum");
+                        parameterNode.remove("collectionFormat");
                         ObjectNode schemaNode = objectMapper.createObjectNode();
                         if (type != null) {
                             schemaNode.set("type", type);
@@ -111,8 +130,35 @@ public class Swagger2OpenApi {
                         if (example != null) {
                             schemaNode.set("example", example);
                         }
+
+                        if (enums != null) {
+                            schemaNode.set("enum", enums);
+                        }
+
+                        if (items != null) {
+                            schemaNode.set("items", items);
+                        }
                         parameterNode.set("schema", schemaNode);
                     }
+                }
+
+                if (fileNode != null) {
+                    parameters.remove(fileNodeIndex);
+                    JsonNode fileName = fileNode.remove("name");
+                    JsonNode description = fileNode.remove("description");
+                    JsonNode required = fileNode.remove("required");
+                    ObjectNode requestBody = objectMapper.createObjectNode();
+                    ObjectNode contentNode = objectMapper.createObjectNode();
+                    ObjectNode schemaNode = objectMapper.createObjectNode();
+                    schemaNode.put("type", "string");
+                    schemaNode.put("format", "binary");
+                    contentNode.set("application/octet-stream", objectMapper.createObjectNode().set("schema", schemaNode));
+                    requestBody.set("content", contentNode);
+                    requestBody.set("required", required);
+                    if (description != null) {
+                        requestBody.set("description", description);
+                    }
+                    methodNode.set("requestBody", requestBody);
                 }
 
                 JsonNode consumes = methodNode.remove("consumes");
