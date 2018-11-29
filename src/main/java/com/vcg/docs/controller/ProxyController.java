@@ -102,7 +102,9 @@ public class ProxyController {
         List<Header> headers = new ArrayList<>();
         while (headerNames.hasMoreElements()) {
             String name = headerNames.nextElement();
-            if (name.equalsIgnoreCase("accept") || name.equalsIgnoreCase("Content-Type")) {
+            if (name.equalsIgnoreCase("Authorization") ||
+                    name.equalsIgnoreCase("accept") ||
+                    name.equalsIgnoreCase("Content-Type")) {
                 String value = request.getHeader(name);
                 headers.add(new BasicHeader(name, value));
             }

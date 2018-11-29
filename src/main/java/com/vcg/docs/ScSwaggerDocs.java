@@ -51,6 +51,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -392,7 +393,7 @@ public class ScSwaggerDocs {
 
             if (commandLine.hasOption("upload")) {
                 String filePath = commandLine.getOptionValue("upload");
-                String swagger = IOUtils.toString( new File(filePath).toURI());
+                String swagger = IOUtils.toString( new File(filePath).toURI(), Charset.forName("utf-8"));
                 String isPrivate = System.getProperty("swaggerhub.isPrivate");
                 String owner = System.getProperty("swaggerhub.owner");
                 String name = System.getProperty("swaggerhub.name");

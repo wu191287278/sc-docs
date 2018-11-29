@@ -10,6 +10,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 @Slf4j
 public class SwaggerHubClient {
@@ -28,7 +29,7 @@ public class SwaggerHubClient {
         HttpPost httpPost = new HttpPost(apiUrl);
         httpPost.addHeader("Authorization", token);
         httpPost.addHeader("Content-Type", "application/" + format);
-        httpPost.setEntity(new StringEntity(swagger));
+        httpPost.setEntity(new StringEntity(swagger, Charset.forName("utf-8")));
         CloseableHttpResponse response = client.execute(httpPost);
         HttpEntity entity = response.getEntity();
         if (response.getStatusLine().getStatusCode() != 200) {
