@@ -140,7 +140,9 @@ public class ScSwaggerDocs {
                 swagger.model(entry.getKey(), entry.getValue());
             }
 
-            if (!swagger.getPaths().isEmpty()) {
+
+            Set<String> pathTagNames = new HashSet<>();
+            if (swagger.getPaths() != null && !swagger.getPaths().isEmpty()) {
                 String projectName = new File(projectPath).getName();
                 String title = System.getProperty("docs." + projectName + ".info.title", projectName);
                 String host = System.getProperty("docs." + projectName + ".host", this.host);
@@ -151,12 +153,27 @@ public class ScSwaggerDocs {
                 swagger.scheme(Scheme.valueOf(scheme.toUpperCase()));
                 swagger.basePath(basePath);
                 swaggerMap.put(projectName, swagger);
+                for (Path path : swagger.getPaths().values()) {
+                    for (Operation operation : path.getOperations()) {
+                        List<String> tags = operation.getTags();
+                        if (tags != null) {
+                            pathTagNames.addAll(tags);
+                        }
+                    }
+                }
             }
 
             if (swagger.getTags() != null) {
                 Map<String, Tag> tagMap = swagger.getTags()
                         .stream()
                         .collect(Collectors.toMap(Tag::getName, t -> t));
+
+                for (String tagName : new HashSet<>(tagMap.keySet())) {
+                    if (!pathTagNames.contains(tagName)) {
+                        tagMap.remove(tagName);
+                    }
+                }
+
                 swagger.tags(new ArrayList<>(new TreeMap<>(tagMap).values()));
             }
 

@@ -34,7 +34,7 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
     private final Set<String> controllers = new HashSet<>(Arrays.asList("Controller", "RestController", "FeignClient"));
 
     private final Set<String> mappings = new HashSet<>(Arrays.asList("RequestMapping",
-            "GetMapping", "PutMapping", "DeleteMapping", "PostMapping","FeignClient"));
+            "GetMapping", "PutMapping", "DeleteMapping", "PostMapping", "FeignClient"));
 
     private final Map<String, String> methods = ImmutableMap.of("GetMapping", "get",
             "PostMapping", "post",
@@ -278,9 +278,12 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
                             break;
                         case "RequestBody":
                             Model model = resolveSwaggerType.convertToModel(property);
-                            param = new BodyParameter().schema(model);
+                            BodyParameter bodyParameter = new BodyParameter().schema(new ModelImpl().type("object"));
+                            if (model != null) {
+                                bodyParameter.schema(model);
+                            }
+                            param = bodyParameter;
                             break;
-
                         case "RequestPart":
                             param = new FormParameter()
                                     .property(paramProperty);
