@@ -2,6 +2,7 @@ package com.vcg.docs;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.github.javaparser.ParseResult;
@@ -18,6 +19,7 @@ import com.vcg.docs.controller.FileExploreController;
 import com.vcg.docs.swaggerhub.SwaggerHubClient;
 import com.vcg.docs.swaggerhub.SwaggerHubRequest;
 import com.vcg.docs.translate.TransApi;
+import com.vcg.docs.utils.Swagger2OpenApi;
 import com.vcg.docs.visitor.ApiDocsGenerator;
 import com.vcg.docs.visitor.RestVisitorAdapter;
 import io.github.swagger2markup.GroupBy;
@@ -27,6 +29,8 @@ import io.github.swagger2markup.builder.Swagger2MarkupConfigBuilder;
 import io.github.swagger2markup.markup.builder.MarkupLanguage;
 import io.swagger.codegen.*;
 import io.swagger.models.*;
+import io.swagger.models.auth.ApiKeyAuthDefinition;
+import io.swagger.models.auth.In;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.properties.Property;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +54,6 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.*;
@@ -121,7 +124,8 @@ public class ScSwaggerDocs {
                     .info(info)
                     .paths(new TreeMap<>())
                     .basePath(this.basePath)
-                    .host(this.host);
+                    .host(this.host)
+                    .securityDefinition("Token", new ApiKeyAuthDefinition("Authorization", In.HEADER));
 
 
             ParserConfiguration parserConfiguration = new ParserConfiguration();
@@ -275,6 +279,10 @@ public class ScSwaggerDocs {
                 .toFile(true)
                 .attributes(toc)
                 .safe(SafeMode.SAFE);
+
+        String redocs = templateEngine.process("redocs", new Context(Locale.CHINESE, ImmutableMap.of("title", swagger.getInfo().getTitle())));
+        String swaggerUI = templateEngine.process("swagger-ui", new Context(Locale.CHINESE, ImmutableMap.of("title", swagger.getInfo().getTitle())));
+
         if ("md".equalsIgnoreCase(format)) {
             builder.withMarkupLanguage(MarkupLanguage.MARKDOWN);
         } else if ("html".equals(format)) {
@@ -284,8 +292,16 @@ public class ScSwaggerDocs {
             try (FileWriter outputStream = new FileWriter(new File(outFile, "swagger.yml"))) {
                 String json = yamlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(swagger);
                 outputStream.write(json);
-                return;
             }
+
+            try (FileWriter outputStream = new FileWriter(new File(outFile, "openapi.yml"))) {
+                JsonNode openApi = Swagger2OpenApi.convert(swagger);
+                String json = yamlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(openApi);
+                outputStream.write(json);
+            } catch (Exception e) {
+                log.warn(e.getMessage());
+            }
+            return;
         } else if ("api".equals(format)) {
             String folder = System.getProperty("java.io.tmpdir") + "/swagger-codegen/" + UUID.randomUUID().toString();
             ClientOpts clientOpts = new ClientOpts();
@@ -308,20 +324,21 @@ public class ScSwaggerDocs {
                 IOUtils.write(docsify, docsifyWriter);
             }
             return;
-        } else {
-            String redocs = templateEngine.process("redocs", new Context(Locale.CHINESE, ImmutableMap.of("title", swagger.getInfo().getTitle())));
-            String swaggerUI = templateEngine.process("swagger-ui", new Context(Locale.CHINESE, ImmutableMap.of("title", swagger.getInfo().getTitle())));
-
+        }else{
             try (FileWriter outputStream = new FileWriter(new File(outFile, "swagger.json"));
+                 FileWriter openApiOutputStream = new FileWriter(new File(outFile, "openapi.json"));
                  FileWriter redocsWriter = new FileWriter(new File(outFile, "redocs.html"));
                  FileWriter swaggerUIWriter = new FileWriter(new File(outFile, "swagger-ui.html"))) {
                 String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(swagger);
+                String openApi = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(Swagger2OpenApi.convert(swagger));
                 outputStream.write(json);
+                openApiOutputStream.write(openApi);
                 IOUtils.write(redocs, redocsWriter);
                 IOUtils.write(swaggerUI, swaggerUIWriter);
                 return;
+            } catch (Exception e) {
+                log.warn(e.getMessage());
             }
-
         }
         Swagger2MarkupConverter.from(swagger)
                 .withConfig(builder.build())
@@ -393,7 +410,7 @@ public class ScSwaggerDocs {
 
             if (commandLine.hasOption("upload")) {
                 String filePath = commandLine.getOptionValue("upload");
-                String swagger = IOUtils.toString( new File(filePath).toURI(), Charset.forName("utf-8"));
+                String swagger = IOUtils.toString(new File(filePath).toURI(), Charset.forName("utf-8"));
                 String isPrivate = System.getProperty("swaggerhub.isPrivate");
                 String owner = System.getProperty("swaggerhub.owner");
                 String name = System.getProperty("swaggerhub.name");
