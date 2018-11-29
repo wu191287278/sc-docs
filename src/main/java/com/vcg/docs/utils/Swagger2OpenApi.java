@@ -60,13 +60,13 @@ public class Swagger2OpenApi {
     }
 
     private static JsonNode getServers(JsonNode jsonNode) throws IOException {
-        String host = jsonNode.get("host").asText();
-        String path = jsonNode.get("basePath").asText();
+        String host = jsonNode.get("host") == null ? "localhost" : jsonNode.get("host").asText();
+        JsonNode path = jsonNode.get("basePath");
         JsonNode schemes = jsonNode.get("schemes");
         ArrayNode servers = objectMapper.createArrayNode();
         for (JsonNode schemeNode : schemes) {
             String scheme = schemeNode.asText().toLowerCase();
-            ObjectNode server = objectMapper.createObjectNode().put("url", scheme + "://" + host + path);
+            ObjectNode server = objectMapper.createObjectNode().put("url", scheme + "://" + host + (path == null ? "/" : path));
             servers.add(server);
         }
         return servers;
@@ -205,6 +205,7 @@ public class Swagger2OpenApi {
                     ObjectNode contentNode = objectMapper.createObjectNode();
                     ObjectNode responseNode = (ObjectNode) response;
                     JsonNode schema = responseNode.remove("schema");
+                    JsonNode headers = responseNode.remove("headers");
                     if (schema != null) {
                         if (produces != null) {
                             for (JsonNode produce : produces) {
@@ -218,6 +219,17 @@ public class Swagger2OpenApi {
                             contentNode.set("application/json", produceNode);
                         }
                     }
+
+                    if (headers != null) {
+                        for (Iterator<String> headerIt = headers.fieldNames(); headerIt.hasNext(); ) {
+                            String headerName = headerIt.next();
+                            JsonNode headerValue = headers.get(headerName);
+                            JsonNode headerSchema = objectMapper.createObjectNode().set("schema", headerValue);
+                            responseNode.set("headers", objectMapper.createObjectNode().set(headerName, headerSchema));
+                        }
+                    }
+
+
                     if (contentNode.size() > 0) {
                         responseNode.set("content", contentNode);
                     }
