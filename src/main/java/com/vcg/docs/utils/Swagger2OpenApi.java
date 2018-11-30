@@ -34,8 +34,12 @@ public class Swagger2OpenApi {
         }
         objectNode.put("openapi", "3.0.0");
         objectNode.set("servers", servers);
-        objectNode.set("info", info);
-        objectNode.set("tags", tags);
+        if (info != null) {
+            objectNode.set("info", info);
+        }
+        if (tags != null) {
+            objectNode.set("tags", tags);
+        }
         objectNode.set("paths", paths);
         objectNode.set("components", components);
 
@@ -64,12 +68,15 @@ public class Swagger2OpenApi {
         JsonNode path = jsonNode.get("basePath");
         JsonNode schemes = jsonNode.get("schemes");
         ArrayNode servers = objectMapper.createArrayNode();
-        for (JsonNode schemeNode : schemes) {
-            String scheme = schemeNode.asText().toLowerCase();
-            ObjectNode server = objectMapper.createObjectNode().put("url", scheme + "://" + host + (path == null ? "/" : path));
-            servers.add(server);
+        if (schemes != null) {
+            for (JsonNode schemeNode : schemes) {
+                String scheme = schemeNode.asText().toLowerCase();
+                ObjectNode server = objectMapper.createObjectNode().put("url", scheme + "://" + host + (path == null ? "/" : path));
+                servers.add(server);
+            }
+            return servers;
         }
-        return servers;
+        return servers.add(objectMapper.createObjectNode().put("url", "http://localhost"));
     }
 
     private static JsonNode getSchemas(JsonNode jsonNode) throws IOException {
