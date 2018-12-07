@@ -14,20 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Controller
@@ -92,6 +87,17 @@ public class FileExploreController {
         }
         response.setStatus(404);
         return null;
+    }
+
+    @PostMapping(value = "/fileExplore/save")
+    @ResponseBody
+    public void save(@RequestParam(value = "filePath") String path,
+                     @RequestBody String content) throws IOException {
+        File file = new File(STATIC_FILE, path);
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write(content);
+            writer.flush();
+        }
     }
 
     @GetMapping(value = "/fileExplore/tree")

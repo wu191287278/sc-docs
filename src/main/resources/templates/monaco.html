@@ -39,7 +39,7 @@
                                placeholder="File path">
                     </div>
                     <button type="button" class="btn btn-default" onclick="openFile()">Open</button>
-                    <button type="button" class="btn btn-default">Save</button>
+                    <button type="button" class="btn btn-default" onclick="saveFile()">Save</button>
                 </div>
 
             </div>
@@ -72,8 +72,29 @@
         "ruby": "ruby",
         "js": "javascript",
         "css": "css",
-        "html": "html"
+        "html": "html",
+        "xml":"xml",
+        "bat":"text",
+        "sh":"text",
+        "cmd":"cmd"
     };
+
+      function saveFile() {
+            var hash = window.location.hash;
+            if (hash && hash.length > 1) {
+                var xhr = new XMLHttpRequest();
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        alert("success");
+                    } else {
+                        alert(xhr.status);
+                    }
+                };
+
+                xhr.open("post", "/fileExplore/save?filePath="+hash.substr(1).replace("/static",""));
+                xhr.send(editor.getValue());
+            }
+        }
 
     function loadFile() {
         var hash = window.location.hash;
@@ -123,12 +144,13 @@
         loadFile();
     }
 
+    let editor;
     function loadEditor(option) {
         let container = document.getElementById('container');
         container.innerHTML = "";
         require.config({paths: {'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.14.3/min/vs/'}});
         require(['vs/editor/editor.main'], function () {
-            var editor = monaco.editor.create(container, option);
+             editor = monaco.editor.create(container, option);
 
             window.onresize = function () {
                 editor.layout();
