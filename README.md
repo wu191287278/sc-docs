@@ -58,7 +58,7 @@ public class SearchController {
 Please follow the [installation](#installation) instruction and execute the following shell code:
 
 ```shell
-java -jar sc-docs.jar -i sourceDirectory -o ./docs
+java -jar sc-docs.jar -i projectPath -o ./docs
 ```
 
 ## Start Server
