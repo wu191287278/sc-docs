@@ -30,7 +30,9 @@ import io.github.swagger2markup.markup.builder.MarkupLanguage;
 import io.swagger.codegen.*;
 import io.swagger.models.*;
 import io.swagger.models.auth.ApiKeyAuthDefinition;
+import io.swagger.models.auth.BasicAuthDefinition;
 import io.swagger.models.auth.In;
+import io.swagger.models.auth.OAuth2Definition;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.properties.Property;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +61,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.asciidoctor.Asciidoctor.Factory.create;
 
@@ -125,7 +128,13 @@ public class ScSwaggerDocs {
                     .paths(new TreeMap<>())
                     .basePath(this.basePath)
                     .host(this.host)
-                    .securityDefinition("Token", new ApiKeyAuthDefinition("Authorization", In.HEADER));
+                    .securityDefinition("api_key", new ApiKeyAuthDefinition("Authorization", In.HEADER))
+                    .securityDefinition("oauth2", new OAuth2Definition()
+                            .implicit("http://petstore.swagger.io/oauth/dialog")
+                            .scope("write:pets", "modify pets in your account")
+                            .scope("read:pets", "read your pets")
+                    )
+                    .securityDefinition("basic", new BasicAuthDefinition());
 
 
             ParserConfiguration parserConfiguration = new ParserConfiguration();
@@ -159,6 +168,9 @@ public class ScSwaggerDocs {
                         if (tags != null) {
                             pathTagNames.addAll(tags);
                         }
+                        Map<String, List<String>> security = Stream.of("api_key", "oauth2", "basic")
+                                .collect(Collectors.toMap(s -> s, s -> new ArrayList<String>()));
+                        operation.setSecurity(Collections.singletonList(security));
                     }
                 }
             }
@@ -341,7 +353,7 @@ public class ScSwaggerDocs {
                 IOUtils.write(docsify, docsifyWriter);
             }
             return;
-        }else{
+        } else {
             try (FileWriter outputStream = new FileWriter(new File(outFile, "swagger.json"));
                  FileWriter openApiOutputStream = new FileWriter(new File(outFile, "openapi.json"));
                  FileWriter redocsWriter = new FileWriter(new File(outFile, "redocs.html"));
