@@ -7,7 +7,10 @@ import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.javadoc.Javadoc;
 import com.github.javaparser.javadoc.description.JavadocDescription;
-import com.github.javaparser.resolution.declarations.*;
+import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.resolution.types.ResolvedTypeVariable;
@@ -74,26 +77,32 @@ public class ResolveSwaggerType {
         return new ObjectProperty();
     }
 
+    private Map<String, Boolean> parentClassMap = new HashMap<>();
+
     private Property resolveRefProperty(ResolvedReferenceType resolvedReferenceType) {
         ObjectProperty objectProperty = new ObjectProperty();
         Set<ResolvedFieldDeclaration> declaredFields = resolvedReferenceType.getDeclaredFields();
         List<ResolvedReferenceType> allClassesAncestors = resolvedReferenceType.getAllClassesAncestors();
-//        for (ResolvedReferenceType allClassesAncestor : allClassesAncestors) {
-//            if (!allClassesAncestor.getQualifiedName().contains("java.lang")
-//                    && !allClassesAncestor.getQualifiedName().contains("java.util")
-//                    && !"java.lang.Object".equals(allClassesAncestor.getQualifiedName())
-//            ) {
-//                Property property = resolveRefProperty(allClassesAncestor);
-//                if (property instanceof ObjectProperty) {
-//                    Map<String, Property> properties = ((ObjectProperty) property).getProperties();
-//                    if (properties != null && !properties.isEmpty()) {
-//                        for (Map.Entry<String, Property> entry : properties.entrySet()) {
-//                            objectProperty.property(entry.getKey(), entry.getValue());
-//                        }
-//                    }
-//                }
-//            }
-//        }
+        for (ResolvedReferenceType allClassesAncestor : allClassesAncestors) {
+            String qualifiedName = allClassesAncestor.getQualifiedName();
+            if (!qualifiedName.contains("java.lang")
+                    && !qualifiedName.contains("java.util")
+                    && !"java.lang.Object".equals(qualifiedName)
+                    && (parentClassMap.get(resolvedReferenceType.getQualifiedName() + "." + qualifiedName)) == null
+            ) {
+                parentClassMap.put(resolvedReferenceType.getQualifiedName() + "." +qualifiedName, true);
+                Property property = resolveRefProperty(allClassesAncestor);
+                if (property instanceof ObjectProperty) {
+                    Map<String, Property> properties = ((ObjectProperty) property).getProperties();
+                    if (properties != null && !properties.isEmpty()) {
+                        for (Map.Entry<String, Property> entry : properties.entrySet()) {
+                            objectProperty.property(entry.getKey(), entry.getValue());
+                        }
+                    }
+                }
+            }
+        }
+
 
         for (ResolvedFieldDeclaration declaredField : declaredFields) {
             ResolvedType resolvedType = declaredField.getType();
