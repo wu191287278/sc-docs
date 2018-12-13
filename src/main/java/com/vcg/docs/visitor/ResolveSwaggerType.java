@@ -77,6 +77,24 @@ public class ResolveSwaggerType {
     private Property resolveRefProperty(ResolvedReferenceType resolvedReferenceType) {
         ObjectProperty objectProperty = new ObjectProperty();
         Set<ResolvedFieldDeclaration> declaredFields = resolvedReferenceType.getDeclaredFields();
+        List<ResolvedReferenceType> allClassesAncestors = resolvedReferenceType.getAllClassesAncestors();
+        for (ResolvedReferenceType allClassesAncestor : allClassesAncestors) {
+            if (!allClassesAncestor.getQualifiedName().contains("java.lang")
+                    && !allClassesAncestor.getQualifiedName().contains("java.util")
+                    && !"java.lang.Object".equals(allClassesAncestor.getQualifiedName())
+            ) {
+                Property property = resolveRefProperty(allClassesAncestor);
+                if (property instanceof ObjectProperty) {
+                    Map<String, Property> properties = ((ObjectProperty) property).getProperties();
+                    if (properties != null && !properties.isEmpty()) {
+                        for (Map.Entry<String, Property> entry : properties.entrySet()) {
+                            objectProperty.property(entry.getKey(), entry.getValue());
+                        }
+                    }
+                }
+            }
+        }
+
         for (ResolvedFieldDeclaration declaredField : declaredFields) {
             ResolvedType resolvedType = declaredField.getType();
             String name = declaredField.getName();
@@ -90,7 +108,7 @@ public class ResolveSwaggerType {
                     property.description(description.toText());
                 });
                 objectProperty.property(name, property);
-                Property typeParameterProperty = resolveParameterProperty(property,resolvedReferenceType, resolvedType);
+                Property typeParameterProperty = resolveParameterProperty(property, resolvedReferenceType, resolvedType);
                 if (typeParameterProperty != null) {
                     objectProperty.property(name, typeParameterProperty);
                 }
@@ -99,13 +117,11 @@ public class ResolveSwaggerType {
                 Property property = resolve(resolvedType);
                 objectProperty.property(name, property);
 
-                Property typeParameterProperty = resolveParameterProperty(property,resolvedReferenceType, resolvedType);
+                Property typeParameterProperty = resolveParameterProperty(property, resolvedReferenceType, resolvedType);
                 if (typeParameterProperty != null) {
                     objectProperty.property(name, typeParameterProperty);
                 }
             }
-
-
 
 
         }
