@@ -25,7 +25,7 @@ Then manually install the following JARs:
 ## Download
 
 ```
-curl -o sc-docs.jar -L https://github.com/wu191287278/sc-docs/releases/download/v1.6/sc-docs.jar
+curl -o sc-docs.jar -L https://github.com/wu191287278/sc-docs/releases/download/v1.7/sc-docs.jar
 ```
 
 ## Java docs Example
@@ -58,7 +58,7 @@ public class SearchController {
 Please follow the [installation](#installation) instruction and execute the following shell code:
 
 ```shell
-java -jar sc-docs.jar -i sourceDirectory -o ./docs
+java -jar sc-docs.jar -i projectPath -o ./docs
 ```
 
 ## Start Server
