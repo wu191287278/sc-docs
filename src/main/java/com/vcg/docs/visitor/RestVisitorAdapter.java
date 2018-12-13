@@ -98,7 +98,18 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
             operation.response(500, new Response().description("{\"message\":\"" + request.getMethodErrorDescription() + "\"}"));
         }
 
-        for (String methodPath : request.getPaths()) {
+        //方法上如果只打入注解没有url,将使用类上的url
+        List<String> pathList = request.getPaths();
+        if (pathList.isEmpty()) {
+            String fullPath = ("/" + parentMappingPath).replaceAll("[/]+", "/");
+            Path path = paths.computeIfAbsent(fullPath, s -> new Path());
+            paths.put(fullPath, path);
+            for (String method : request.getMethods()) {
+                path.set(method, operation.operationId(n.getNameAsString()));
+            }
+        }
+
+        for (String methodPath : pathList) {
             String fullPath = ("/" + parentMappingPath + "/" + methodPath).replaceAll("[/]+", "/");
             Path path = paths.computeIfAbsent(fullPath, s -> new Path());
             paths.put(fullPath, path);
