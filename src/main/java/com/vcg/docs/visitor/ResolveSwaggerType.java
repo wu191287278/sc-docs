@@ -450,7 +450,18 @@ public class ResolveSwaggerType {
             return new StringProperty();
         }
 
-        if ("java.util.Date".equals(clazzName)) {
+        if ("java.util.Date".equals(clazzName) ||
+                "java.time.LocalDate".equals(clazzName) ||
+                "java.time.LocalTime".equals(clazzName) ||
+                "java.time.LocalDateTime".equals(clazzName) ||
+                "java.time.ZonedDateTime".equals(clazzName) ||
+                "java.joda.LocalDate".equals(clazzName) ||
+                "java.joda.LocalTime".equals(clazzName) ||
+                "java.joda.LocalDateTime".equals(clazzName) ||
+                "java.joda.ZonedDateTime".equals(clazzName) ||
+                "java.sql.Timestamp".equals(clazzName)
+
+        ) {
             return new StringProperty("data-time").example("2018-09-10T13:11:43.123");
         }
 
