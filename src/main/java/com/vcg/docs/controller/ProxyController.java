@@ -159,11 +159,9 @@ public class ProxyController {
             HttpEntity entity = builder.build();
             httpEntityEnclosingRequestBase.setEntity(entity);
         } else {
-            try (InputStream in = request.getInputStream()) {
-                if (request.getInputStream().available() > 0 && !(httpRequestBase instanceof HttpGet)) {
-                    HttpEntityEnclosingRequestBase httpEntityEnclosingRequestBase = (HttpEntityEnclosingRequestBase) httpRequestBase;
-                    httpEntityEnclosingRequestBase.setEntity(new InputStreamEntity(in));
-                }
+            if (request.getInputStream().available() > 0 && !(httpRequestBase instanceof HttpGet)) {
+                HttpEntityEnclosingRequestBase httpEntityEnclosingRequestBase = (HttpEntityEnclosingRequestBase) httpRequestBase;
+                httpEntityEnclosingRequestBase.setEntity(new InputStreamEntity(request.getInputStream()));
             }
         }
 
