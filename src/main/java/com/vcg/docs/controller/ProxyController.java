@@ -6,10 +6,15 @@ import io.swagger.models.Swagger;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.*;
 import org.apache.http.config.ConnectionConfig;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -18,6 +23,8 @@ import org.apache.http.message.BasicHeader;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -27,10 +34,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @Slf4j
@@ -82,7 +86,6 @@ public class ProxyController {
 
     }
 
-
     private HttpResponse execute(HttpServletRequest request, String host) throws IOException {
         CloseableHttpClient client = buildHttpClient(request);
         Header[] headers = getHeaders(request);
@@ -96,18 +99,21 @@ public class ProxyController {
         return request.getQueryString();
     }
 
+    private Set<String> ignoredSet = new HashSet<>(
+            Arrays.asList("host", "connection", "refer", "referer", "content-length", "origin", "location")
+    );
 
     private Header[] getHeaders(HttpServletRequest request) {
         Enumeration<String> headerNames = request.getHeaderNames();
         List<Header> headers = new ArrayList<>();
         while (headerNames.hasMoreElements()) {
             String name = headerNames.nextElement();
-            if (name.equalsIgnoreCase("Authorization") ||
-                    name.equalsIgnoreCase("accept") ||
-                    name.equalsIgnoreCase("Content-Type")) {
-                String value = request.getHeader(name);
-                headers.add(new BasicHeader(name, value));
+            if (ignoredSet.contains(name)) continue;
+            if ((name.equals("content-type") || name.equals("accept")) && request instanceof StandardMultipartHttpServletRequest) {
+                continue;
             }
+            String value = request.getHeader(name);
+            headers.add(new BasicHeader(name, value));
         }
         return headers.toArray(new Header[]{});
     }
@@ -137,12 +143,30 @@ public class ProxyController {
 
     private HttpRequestBase buildContent(HttpServletRequest request) throws IOException {
         HttpRequestBase httpRequestBase = buildHttpRequestBase(request);
-        try (InputStream in = request.getInputStream()) {
-            if (request.getInputStream().available() > 0 && !(httpRequestBase instanceof HttpGet)) {
-                HttpEntityEnclosingRequestBase httpEntityEnclosingRequestBase = (HttpEntityEnclosingRequestBase) httpRequestBase;
-                httpEntityEnclosingRequestBase.setEntity(new InputStreamEntity(in));
+        //上传文件
+        if (request instanceof StandardMultipartHttpServletRequest) {
+            StandardMultipartHttpServletRequest multipartHttpServletRequest = (StandardMultipartHttpServletRequest) request;
+            MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+            for (Map.Entry<String, List<MultipartFile>> entry : multipartHttpServletRequest.getMultiFileMap().entrySet()) {
+                String key = entry.getKey();
+                for (MultipartFile multipartFile : entry.getValue()) {
+                    builder.addPart(key, new InputStreamBody(multipartFile.getInputStream(), ContentType.MULTIPART_FORM_DATA, multipartFile.getOriginalFilename()));
+                }
+            }
+
+            HttpEntityEnclosingRequestBase httpEntityEnclosingRequestBase = (HttpEntityEnclosingRequestBase) httpRequestBase;
+            HttpEntity entity = builder.build();
+            httpEntityEnclosingRequestBase.setEntity(entity);
+        } else {
+            try (InputStream in = request.getInputStream()) {
+                if (request.getInputStream().available() > 0 && !(httpRequestBase instanceof HttpGet)) {
+                    HttpEntityEnclosingRequestBase httpEntityEnclosingRequestBase = (HttpEntityEnclosingRequestBase) httpRequestBase;
+                    httpEntityEnclosingRequestBase.setEntity(new InputStreamEntity(in));
+                }
             }
         }
+
         return httpRequestBase;
     }
 
