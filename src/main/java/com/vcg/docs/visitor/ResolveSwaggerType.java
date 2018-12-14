@@ -84,9 +84,6 @@ public class ResolveSwaggerType {
         ObjectProperty objectProperty = new ObjectProperty();
         Set<ResolvedFieldDeclaration> declaredFields = resolvedReferenceType.getDeclaredFields();
         List<ResolvedReferenceType> allClassesAncestors = resolvedReferenceType.getAllClassesAncestors();
-        if (resolvedReferenceType.getQualifiedName().contains("LoginUserDetails")) {
-            System.err.println();
-        }
         for (ResolvedReferenceType allClassesAncestor : allClassesAncestors) {
             String qualifiedName = allClassesAncestor.getQualifiedName();
             if (!qualifiedName.contains("java.lang")
