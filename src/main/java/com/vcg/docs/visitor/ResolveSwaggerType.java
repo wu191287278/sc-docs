@@ -22,6 +22,7 @@ import com.github.javaparser.symbolsolver.javassistmodel.JavassistEnumDeclaratio
 import com.github.javaparser.symbolsolver.javassistmodel.JavassistFieldDeclaration;
 import com.github.javaparser.symbolsolver.javassistmodel.JavassistInterfaceDeclaration;
 import com.github.javaparser.symbolsolver.model.typesystem.ReferenceTypeImpl;
+import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionFieldDeclaration;
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionInterfaceDeclaration;
 import com.github.javaparser.utils.Pair;
 import io.swagger.models.ArrayModel;
@@ -83,6 +84,9 @@ public class ResolveSwaggerType {
         ObjectProperty objectProperty = new ObjectProperty();
         Set<ResolvedFieldDeclaration> declaredFields = resolvedReferenceType.getDeclaredFields();
         List<ResolvedReferenceType> allClassesAncestors = resolvedReferenceType.getAllClassesAncestors();
+        if (resolvedReferenceType.getQualifiedName().contains("LoginUserDetails")) {
+            System.err.println();
+        }
         for (ResolvedReferenceType allClassesAncestor : allClassesAncestors) {
             String qualifiedName = allClassesAncestor.getQualifiedName();
             if (!qualifiedName.contains("java.lang")
@@ -90,7 +94,7 @@ public class ResolveSwaggerType {
                     && !"java.lang.Object".equals(qualifiedName)
                     && (parentClassMap.get(resolvedReferenceType.getQualifiedName() + "." + qualifiedName)) == null
             ) {
-                parentClassMap.put(resolvedReferenceType.getQualifiedName() + "." +qualifiedName, true);
+                parentClassMap.put(resolvedReferenceType.getQualifiedName() + "." + qualifiedName, true);
                 Property property = resolveRefProperty(allClassesAncestor);
                 if (property instanceof ObjectProperty) {
                     Map<String, Property> properties = ((ObjectProperty) property).getProperties();
@@ -122,7 +126,7 @@ public class ResolveSwaggerType {
                     objectProperty.property(name, typeParameterProperty);
                 }
 
-            } else if (!declaredField.isStatic() && declaredField instanceof JavassistFieldDeclaration) {
+            } else if (!declaredField.isStatic() && (declaredField instanceof JavassistFieldDeclaration || declaredField instanceof ReflectionFieldDeclaration)) {
                 Property property = resolve(resolvedType);
                 objectProperty.property(name, property);
 
