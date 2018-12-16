@@ -298,6 +298,7 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
                         case "RequestPart":
                             param = new FormParameter()
                                     .property(paramProperty);
+                            request.getConsumes().add("multipart/form-data");
                             break;
                         case "RequestHeader":
                             param = new HeaderParameter()
