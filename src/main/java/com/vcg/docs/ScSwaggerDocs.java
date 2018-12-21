@@ -36,8 +36,8 @@ import io.swagger.models.auth.OAuth2Definition;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.properties.Property;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.cli.*;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +56,9 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -394,15 +396,76 @@ public class ScSwaggerDocs {
         System.setProperty("maven.multiModuleProjectDirectory", sourceDirectory);
         try {
             log.info("downloading maven...");
-            MavenWrapperMain.main(new String[]{"install", "-Dmaven.test.skip=true", "-f", sourceDirectory});
-            MavenWrapperMain.main(new String[]{"dependency:copy-dependencies", "-f", sourceDirectory});
+            Runtime runtime = Runtime.getRuntime();
+            List<String> envs = new ArrayList<>();
+            for (Map.Entry<String, String> entry : System.getenv().entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                envs.add(key + "=" + value);
+            }
+            int exitValue = 9;
+            try {
+                Process process = runtime.exec("mvn -Dmaven.test.skip=true -Dcheckstyle.skip=true install dependency:copy-dependencies",
+                        envs.toArray(new String[]{}),
+                        new File(sourceDirectory));
+                try (InputStream errorStream = process.getErrorStream();
+                     InputStream inputStream = process.getInputStream()) {
+                    int len;
+                    byte[] bytes = new byte[1024];
+                    while ((len = inputStream.read(bytes)) != -1) {
+                        System.out.print(new String(bytes, 0, len, StandardCharsets.UTF_8));
+                    }
+
+                    while ((len = errorStream.read(bytes)) != -1) {
+                        System.out.print(new String(bytes, 0, len, StandardCharsets.UTF_8));
+                    }
+                }
+                exitValue = process.exitValue();
+            } catch (Exception e) {
+                log.warn(e.getMessage());
+            }
+
+            if (exitValue != 0) {
+                try {
+                    Process process = runtime.exec("sh mvnw -Dmaven.test.skip=true -Dcheckstyle.skip=true install dependency:copy-dependencies",
+                            envs.toArray(new String[]{}),
+                            new File(sourceDirectory));
+                    try (InputStream errorStream = process.getErrorStream();
+                         InputStream inputStream = process.getInputStream()) {
+                        int len;
+                        byte[] bytes = new byte[1024];
+                        while ((len = inputStream.read(bytes)) != -1) {
+                            System.out.print(new String(bytes, 0, len, StandardCharsets.UTF_8));
+                        }
+
+                        while ((len = errorStream.read(bytes)) != -1) {
+                            System.out.print(new String(bytes, 0, len, StandardCharsets.UTF_8));
+                        }
+                    }
+                    exitValue = process.exitValue();
+                } catch (Exception e) {
+                    log.warn(e.getMessage());
+                }
+            }
+
+
+            if (exitValue != 0) {
+                MavenWrapperMain.main(new String[]{"install",
+                        "-Dmaven.test.skip=true",
+                        "-Dcheckstyle.skip=true",
+                        "-f",
+                        sourceDirectory});
+                MavenWrapperMain.main(new String[]{"install", "dependency:copy-dependencies", "-f", sourceDirectory});
+            }
+
         } catch (Exception e) {
             log.warn(e.getMessage());
         }
     }
 
+
     public static void main(String[] args) throws Exception {
-//        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/vc-chat2", "-o", "./docs"};
+//        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/userprofile", "-o", "./docs"};
 //        args = new String[]{"-serve", "/Users/wuyu/sc-generator/docs"};
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "help"));

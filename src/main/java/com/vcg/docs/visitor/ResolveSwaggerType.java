@@ -82,59 +82,60 @@ public class ResolveSwaggerType {
 
     private Property resolveRefProperty(ResolvedReferenceType resolvedReferenceType) {
         ObjectProperty objectProperty = new ObjectProperty();
-        Set<ResolvedFieldDeclaration> declaredFields = resolvedReferenceType.getDeclaredFields();
-        List<ResolvedReferenceType> allClassesAncestors = resolvedReferenceType.getAllClassesAncestors();
-        for (ResolvedReferenceType allClassesAncestor : allClassesAncestors) {
-            String qualifiedName = allClassesAncestor.getQualifiedName();
-            if (!qualifiedName.contains("java.lang")
-                    && !qualifiedName.contains("java.util")
-                    && !"java.lang.Object".equals(qualifiedName)
-                    && (parentClassMap.get(resolvedReferenceType.getQualifiedName() + "." + qualifiedName)) == null
-            ) {
-                parentClassMap.put(resolvedReferenceType.getQualifiedName() + "." + qualifiedName, true);
-                Property property = resolveRefProperty(allClassesAncestor);
-                if (property instanceof ObjectProperty) {
-                    Map<String, Property> properties = ((ObjectProperty) property).getProperties();
-                    if (properties != null && !properties.isEmpty()) {
-                        for (Map.Entry<String, Property> entry : properties.entrySet()) {
-                            objectProperty.property(entry.getKey(), entry.getValue());
+        if (!resolvedReferenceType.getTypeDeclaration().isEnum()) {
+            Set<ResolvedFieldDeclaration> declaredFields = resolvedReferenceType.getDeclaredFields();
+            List<ResolvedReferenceType> allClassesAncestors = resolvedReferenceType.getAllClassesAncestors();
+            for (ResolvedReferenceType allClassesAncestor : allClassesAncestors) {
+                String qualifiedName = allClassesAncestor.getQualifiedName();
+                if (!qualifiedName.contains("java.lang")
+                        && !qualifiedName.contains("java.util")
+                        && !"java.lang.Object".equals(qualifiedName)
+                        && (parentClassMap.get(resolvedReferenceType.getQualifiedName() + "." + qualifiedName)) == null
+                ) {
+                    parentClassMap.put(resolvedReferenceType.getQualifiedName() + "." + qualifiedName, true);
+                    Property property = resolveRefProperty(allClassesAncestor);
+                    if (property instanceof ObjectProperty) {
+                        Map<String, Property> properties = ((ObjectProperty) property).getProperties();
+                        if (properties != null && !properties.isEmpty()) {
+                            for (Map.Entry<String, Property> entry : properties.entrySet()) {
+                                objectProperty.property(entry.getKey(), entry.getValue());
+                            }
                         }
+                    }
+                }
+            }
+
+
+            for (ResolvedFieldDeclaration declaredField : declaredFields) {
+                ResolvedType resolvedType = declaredField.getType();
+                String name = declaredField.getName();
+                if (!declaredField.isStatic() && declaredField instanceof JavaParserFieldDeclaration) {
+                    JavaParserFieldDeclaration field = (JavaParserFieldDeclaration) declaredField;
+                    FieldDeclaration wrappedNode = field.getWrappedNode();
+                    Property property = resolve(resolvedType);
+                    wrappedNode.getJavadocComment().ifPresent(c -> {
+                        Javadoc javadoc = c.asJavadocComment().parse();
+                        JavadocDescription description = javadoc.getDescription();
+                        property.description(description.toText());
+                    });
+                    objectProperty.property(name, property);
+                    Property typeParameterProperty = resolveParameterProperty(property, resolvedReferenceType, resolvedType);
+                    if (typeParameterProperty != null) {
+                        objectProperty.property(name, typeParameterProperty);
+                    }
+
+                } else if (!declaredField.isStatic() && (declaredField instanceof JavassistFieldDeclaration || declaredField instanceof ReflectionFieldDeclaration)) {
+                    Property property = resolve(resolvedType);
+                    objectProperty.property(name, property);
+
+                    Property typeParameterProperty = resolveParameterProperty(property, resolvedReferenceType, resolvedType);
+                    if (typeParameterProperty != null) {
+                        objectProperty.property(name, typeParameterProperty);
                     }
                 }
             }
         }
 
-
-        for (ResolvedFieldDeclaration declaredField : declaredFields) {
-            ResolvedType resolvedType = declaredField.getType();
-            String name = declaredField.getName();
-            if (!declaredField.isStatic() && declaredField instanceof JavaParserFieldDeclaration) {
-                JavaParserFieldDeclaration field = (JavaParserFieldDeclaration) declaredField;
-                FieldDeclaration wrappedNode = field.getWrappedNode();
-                Property property = resolve(resolvedType);
-                wrappedNode.getJavadocComment().ifPresent(c -> {
-                    Javadoc javadoc = c.asJavadocComment().parse();
-                    JavadocDescription description = javadoc.getDescription();
-                    property.description(description.toText());
-                });
-                objectProperty.property(name, property);
-                Property typeParameterProperty = resolveParameterProperty(property, resolvedReferenceType, resolvedType);
-                if (typeParameterProperty != null) {
-                    objectProperty.property(name, typeParameterProperty);
-                }
-
-            } else if (!declaredField.isStatic() && (declaredField instanceof JavassistFieldDeclaration || declaredField instanceof ReflectionFieldDeclaration)) {
-                Property property = resolve(resolvedType);
-                objectProperty.property(name, property);
-
-                Property typeParameterProperty = resolveParameterProperty(property, resolvedReferenceType, resolvedType);
-                if (typeParameterProperty != null) {
-                    objectProperty.property(name, typeParameterProperty);
-                }
-            }
-
-
-        }
 
 //
 //        if (declaredFields.size() == 0) {
