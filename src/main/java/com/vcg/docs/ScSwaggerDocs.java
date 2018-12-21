@@ -403,7 +403,6 @@ public class ScSwaggerDocs {
                 String value = entry.getValue();
                 envs.add(key + "=" + value);
             }
-            int exitValue = 9;
             try {
                 Process process = runtime.exec("mvn -Dmaven.test.skip=true -Dcheckstyle.skip=true install dependency:copy-dependencies",
                         envs.toArray(new String[]{}),
@@ -420,36 +419,7 @@ public class ScSwaggerDocs {
                         System.out.print(new String(bytes, 0, len, StandardCharsets.UTF_8));
                     }
                 }
-                exitValue = process.exitValue();
             } catch (Exception e) {
-                log.warn(e.getMessage());
-            }
-
-            if (exitValue != 0) {
-                try {
-                    Process process = runtime.exec("sh mvnw -Dmaven.test.skip=true -Dcheckstyle.skip=true install dependency:copy-dependencies",
-                            envs.toArray(new String[]{}),
-                            new File(sourceDirectory));
-                    try (InputStream errorStream = process.getErrorStream();
-                         InputStream inputStream = process.getInputStream()) {
-                        int len;
-                        byte[] bytes = new byte[1024];
-                        while ((len = inputStream.read(bytes)) != -1) {
-                            System.out.print(new String(bytes, 0, len, StandardCharsets.UTF_8));
-                        }
-
-                        while ((len = errorStream.read(bytes)) != -1) {
-                            System.out.print(new String(bytes, 0, len, StandardCharsets.UTF_8));
-                        }
-                    }
-                    exitValue = process.exitValue();
-                } catch (Exception e) {
-                    log.warn(e.getMessage());
-                }
-            }
-
-
-            if (exitValue != 0) {
                 MavenWrapperMain.main(new String[]{"install",
                         "-Dmaven.test.skip=true",
                         "-Dcheckstyle.skip=true",
@@ -457,7 +427,6 @@ public class ScSwaggerDocs {
                         sourceDirectory});
                 MavenWrapperMain.main(new String[]{"install", "dependency:copy-dependencies", "-f", sourceDirectory});
             }
-
         } catch (Exception e) {
             log.warn(e.getMessage());
         }
