@@ -404,7 +404,7 @@ public class ScSwaggerDocs {
                 envs.add(key + "=" + value);
             }
             try {
-                Process process = runtime.exec("mvn -Dmaven.test.skip=true -Dcheckstyle.skip=true install dependency:copy-dependencies",
+                Process process = runtime.exec("mvn -Dmaven.test.skip=true -Dcheckstyle.skip=true -Dmdep.prependGroupId=true -DskipTests=true clean install dependency:copy-dependencies",
                         envs.toArray(new String[]{}),
                         new File(sourceDirectory));
                 try (InputStream errorStream = process.getErrorStream();
@@ -420,12 +420,16 @@ public class ScSwaggerDocs {
                     }
                 }
             } catch (Exception e) {
-                MavenWrapperMain.main(new String[]{"install",
+                MavenWrapperMain.main(new String[]{
+                        "clean",
+                        "install",
+                        "dependency:copy-dependencies",
                         "-Dmaven.test.skip=true",
                         "-Dcheckstyle.skip=true",
+                        "-DskipTests=true",
+                        "-Dmdep.prependGroupId=true",
                         "-f",
                         sourceDirectory});
-                MavenWrapperMain.main(new String[]{"install", "dependency:copy-dependencies", "-f", sourceDirectory});
             }
         } catch (Exception e) {
             log.warn(e.getMessage());
