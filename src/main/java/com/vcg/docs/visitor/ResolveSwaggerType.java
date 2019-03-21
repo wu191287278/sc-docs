@@ -1,9 +1,12 @@
 package com.vcg.docs.visitor;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.javadoc.Javadoc;
 import com.github.javaparser.javadoc.description.JavadocDescription;
@@ -30,8 +33,12 @@ import io.swagger.models.Model;
 import io.swagger.models.ModelImpl;
 import io.swagger.models.RefModel;
 import io.swagger.models.properties.*;
+import javassist.CtField;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.validation.constraints.NotNull;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,6 +46,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ResolveSwaggerType {
 
     private Map<String, Property> propertyMap = new ConcurrentHashMap<>();
+
+    private Map<String, Property> referencePropertyMap = new HashMap<>();
 
     public Property resolve(Type type) {
         try {
@@ -82,6 +91,7 @@ public class ResolveSwaggerType {
 
     private Property resolveRefProperty(ResolvedReferenceType resolvedReferenceType) {
         ObjectProperty objectProperty = new ObjectProperty();
+        referencePropertyMap.put(resolvedReferenceType.toString(), objectProperty);
         if (!resolvedReferenceType.getTypeDeclaration().isEnum()) {
             Set<ResolvedFieldDeclaration> declaredFields = resolvedReferenceType.getDeclaredFields();
             List<ResolvedReferenceType> allClassesAncestors = resolvedReferenceType.getAllClassesAncestors();
@@ -118,14 +128,38 @@ public class ResolveSwaggerType {
                         JavadocDescription description = javadoc.getDescription();
                         property.description(description.toText());
                     });
+
+                    name = getFiledname(wrappedNode, name);
                     objectProperty.property(name, property);
                     Property typeParameterProperty = resolveParameterProperty(property, resolvedReferenceType, resolvedType);
                     if (typeParameterProperty != null) {
                         objectProperty.property(name, typeParameterProperty);
                     }
 
+                    if (fieldIsRequired(wrappedNode)) {
+                        property.setRequired(true);
+                    }
+
                 } else if (!declaredField.isStatic() && (declaredField instanceof JavassistFieldDeclaration || declaredField instanceof ReflectionFieldDeclaration)) {
                     Property property = resolve(resolvedType);
+
+                    if (declaredField instanceof JavassistFieldDeclaration) {
+                        JavassistFieldDeclaration javassistFieldDeclaration = (JavassistFieldDeclaration) declaredField;
+                        try {
+                            Field field = javassistFieldDeclaration.getClass().getDeclaredField("ctField");
+                            field.setAccessible(true);
+                            CtField ctField = (CtField) field.get(javassistFieldDeclaration);
+                            JsonProperty jsonProperty = (JsonProperty) ctField.getAnnotation(JsonProperty.class);
+                            if (jsonProperty != null && StringUtils.isNotBlank(jsonProperty.value())) {
+                                name = jsonProperty.value();
+                            }
+
+                        } catch (Exception e) {
+                            log.warn(e.getMessage(), e);
+                        }
+                    }
+
+
                     objectProperty.property(name, property);
 
                     Property typeParameterProperty = resolveParameterProperty(property, resolvedReferenceType, resolvedType);
@@ -176,23 +210,45 @@ public class ResolveSwaggerType {
             try {
                 Class<?> aClass = Class.forName(typeDeclaration.getId());
                 if (Set.class.isAssignableFrom(aClass)) {
-                    Property value = resolve(typeParametersMap.get(0).b);
-                    if (value instanceof ObjectProperty && value.getName() != null) {
-                        return new ArrayProperty(new RefProperty("#/definitions/" + value.getName()));
+                    if (!typeParametersMap.isEmpty()) {
+                        String itemName = typeParametersMap.get(0).b.toString();
+                        Property value = referencePropertyMap.get(itemName);
+                        if (value == null) {
+                            value = resolve(typeParametersMap.get(0).b);
+                        }
+                        if (value instanceof ObjectProperty && value.getName() != null) {
+                            return new ArrayProperty(new RefProperty("#/definitions/" + value.getName()));
+                        }
+                        return new ArrayProperty(value).uniqueItems();
                     }
-                    return new ArrayProperty(value).uniqueItems();
+                    return new ArrayProperty(new ObjectProperty()).uniqueItems();
                 } else if (Collection.class.isAssignableFrom(aClass)) {
-                    Property value = resolve(typeParametersMap.get(0).b);
-                    if (value instanceof ObjectProperty && value.getName() != null) {
-                        return new ArrayProperty(new RefProperty("#/definitions/" + value.getName()));
+                    if (!typeParametersMap.isEmpty()) {
+                        String itemName = typeParametersMap.get(0).b.toString();
+                        Property value = referencePropertyMap.get(itemName);
+                        if (value == null) {
+                            value = resolve(typeParametersMap.get(0).b);
+                        }
+                        if (value instanceof ObjectProperty && value.getName() != null) {
+                            return new ArrayProperty(new RefProperty("#/definitions/" + value.getName()));
+                        }
+                        return new ArrayProperty(value);
                     }
-                    return new ArrayProperty(value);
+                    return new ArrayProperty(new ObjectProperty());
                 } else if (Map.class.isAssignableFrom(aClass)) {
-                    Property value = resolve(typeParametersMap.get(1).b);
-                    if (value instanceof ObjectProperty && value.getName() != null) {
-                        return new MapProperty().additionalProperties(new RefProperty("#/definitions/" + value.getName()));
+                    if (typeParametersMap.size() > 1) {
+                        String itemName = typeParametersMap.get(1).b.toString();
+                        Property value = referencePropertyMap.get(itemName);
+                        if (value == null) {
+                            value = resolve(typeParametersMap.get(1).b);
+                        }
+                        if (value instanceof ObjectProperty && value.getName() != null) {
+                            return new MapProperty().additionalProperties(new RefProperty("#/definitions/" + value.getName()));
+                        }
+                        return new MapProperty().additionalProperties(value);
                     }
-                    return new MapProperty().additionalProperties(value);
+                    return new MapProperty().additionalProperties(new ObjectProperty());
+
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -258,6 +314,57 @@ public class ResolveSwaggerType {
         }
 
         return objectProperty;
+    }
+
+    private String getFiledname(FieldDeclaration wrappedNode, String name) {
+        Optional<AnnotationExpr> jsonProperty = wrappedNode.getAnnotationByClass(JsonProperty.class);
+        if (jsonProperty.isPresent()) {
+            AnnotationExpr annotationExpr = jsonProperty.get().asAnnotationExpr();
+            if (annotationExpr instanceof SingleMemberAnnotationExpr) {
+                SingleMemberAnnotationExpr single = (SingleMemberAnnotationExpr) annotationExpr;
+                String memberValue = single.getMemberValue().asStringLiteralExpr().getValue();
+                if (StringUtils.isNotBlank(memberValue)) {
+                    name = memberValue;
+                }
+            }
+
+            if (annotationExpr instanceof NormalAnnotationExpr) {
+                NormalAnnotationExpr normalAnnotationExpr = annotationExpr.asNormalAnnotationExpr();
+                NodeList<MemberValuePair> pairs = normalAnnotationExpr.getPairs();
+                for (MemberValuePair pair : pairs) {
+                    String pairName = pair.getName().asString();
+                    Expression pairExpression = pair.getValue();
+                    if ("value".equals(pairName)) {
+                        String pairValue = pairExpression.asStringLiteralExpr().asString();
+                        if (StringUtils.isNotBlank(pairValue)) {
+                            name = pairValue;
+                        }
+                    }
+                }
+            }
+        }
+        return name;
+    }
+
+    private boolean fieldIsRequired(FieldDeclaration wrappedNode) {
+        Optional<AnnotationExpr> jsonProperty = wrappedNode.getAnnotationByClass(JsonProperty.class);
+        Optional<AnnotationExpr> notNull = wrappedNode.getAnnotationByClass(NotNull.class);
+        boolean required = false;
+        if (jsonProperty.isPresent()) {
+            AnnotationExpr annotationExpr = jsonProperty.get().asAnnotationExpr();
+            if (annotationExpr instanceof NormalAnnotationExpr) {
+                NormalAnnotationExpr normalAnnotationExpr = annotationExpr.asNormalAnnotationExpr();
+                NodeList<MemberValuePair> pairs = normalAnnotationExpr.getPairs();
+                for (MemberValuePair pair : pairs) {
+                    String pairName = pair.getName().asString();
+                    Expression pairExpression = pair.getValue();
+                    if ("required".equals(pairName)) {
+                        required = pairExpression.asBooleanLiteralExpr().getValue();
+                    }
+                }
+            }
+        }
+        return required || notNull.isPresent();
     }
 
 
@@ -451,19 +558,26 @@ public class ResolveSwaggerType {
             return new StringProperty();
         }
 
+        if ("java.joda.LocalDate".equals(clazzName) ||
+                "java.time.LocalDate".equals(clazzName)) {
+            return new StringProperty("data-time").example("2018-09-10");
+        }
+
+
+        if ("java.time.LocalTime".equals(clazzName) ||
+                "java.joda.LocalTime".equals(clazzName)) {
+            return new StringProperty("data-time").example("13:11:43");
+        }
+
         if ("java.util.Date".equals(clazzName) ||
-                "java.time.LocalDate".equals(clazzName) ||
-                "java.time.LocalTime".equals(clazzName) ||
                 "java.time.LocalDateTime".equals(clazzName) ||
                 "java.time.ZonedDateTime".equals(clazzName) ||
-                "java.joda.LocalDate".equals(clazzName) ||
-                "java.joda.LocalTime".equals(clazzName) ||
                 "java.joda.LocalDateTime".equals(clazzName) ||
                 "java.joda.ZonedDateTime".equals(clazzName) ||
                 "java.sql.Timestamp".equals(clazzName)
 
         ) {
-            return new StringProperty("data-time").example("2018-09-10T13:11:43.123");
+            return new StringProperty("data-time").example("2018-09-10T13:11:43Z");
         }
 
         if ("org.springframework.web.multipart.MultipartFile".equals(clazzName)) {

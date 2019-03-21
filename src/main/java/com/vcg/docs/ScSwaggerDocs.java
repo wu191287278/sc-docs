@@ -87,6 +87,7 @@ public class ScSwaggerDocs {
 
     private static final Pattern CHINESE_PATTERN = Pattern.compile("[\u4e00-\u9fa5]");
 
+    private boolean camel = true;
 
     public Map<String, Swagger> parse(String sourceDirectory, String basePackage) {
         copyDependencies(sourceDirectory);
@@ -333,7 +334,7 @@ public class ScSwaggerDocs {
                 log.warn(e.getMessage());
             }
             return;
-        } else if ("api".equals(format)) {
+        } /*else if ("api".equals(format)) {
             String folder = System.getProperty("java.io.tmpdir") + "/swagger-codegen/" + UUID.randomUUID().toString();
             ClientOpts clientOpts = new ClientOpts();
             clientOpts.setOutputDirectory(outFile.getAbsolutePath());
@@ -355,7 +356,7 @@ public class ScSwaggerDocs {
                 IOUtils.write(docsify, docsifyWriter);
             }
             return;
-        } else {
+        } */ else {
             try (FileWriter outputStream = new FileWriter(new File(outFile, "swagger.json"));
                  FileWriter openApiOutputStream = new FileWriter(new File(outFile, "openapi.json"));
                  FileWriter redocsWriter = new FileWriter(new File(outFile, "redocs.html"));
@@ -438,7 +439,7 @@ public class ScSwaggerDocs {
 
 
     public static void main(String[] args) throws Exception {
-//        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/userprofile", "-o", "./docs"};
+//        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/contest", "-o", "./docs"};
 //        args = new String[]{"-serve", "/Users/wuyu/sc-generator/docs"};
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "help"));

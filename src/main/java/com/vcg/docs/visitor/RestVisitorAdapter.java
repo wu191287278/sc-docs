@@ -39,7 +39,8 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
     private final Map<String, String> methods = ImmutableMap.of("GetMapping", "get",
             "PostMapping", "post",
             "DeleteMapping", "delete",
-            "PutMapping", "put"
+            "PutMapping", "put",
+            "PatchMapping", "patch"
     );
 
     private final Map<String, String> headers = new HashMap<>();
@@ -185,7 +186,20 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
 
                 if (annotation instanceof SingleMemberAnnotationExpr) {
                     SingleMemberAnnotationExpr singleMemberAnnotationExpr = (SingleMemberAnnotationExpr) annotation;
-                    request.getPaths().add(singleMemberAnnotationExpr.getMemberValue().asStringLiteralExpr().asString());
+                    Expression memberValue = singleMemberAnnotationExpr.getMemberValue();
+                    if (memberValue.isStringLiteralExpr()) {
+                        request.getPaths().add(memberValue.asStringLiteralExpr().asString());
+                    }
+
+                    if (memberValue.isArrayInitializerExpr()) {
+                        NodeList<Expression> values = memberValue.asArrayInitializerExpr().getValues();
+                        for (Expression value : values) {
+                            if (value.isStringLiteralExpr()) {
+                                request.getPaths().add(value.asStringLiteralExpr().asString());
+                            }
+                        }
+                    }
+
                 }
                 if (annotation instanceof NormalAnnotationExpr) {
                     for (MemberValuePair pair : annotation.asNormalAnnotationExpr().getPairs()) {
@@ -295,6 +309,7 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
                             }
                             param = bodyParameter;
                             break;
+
                         case "RequestPart":
                             param = new FormParameter()
                                     .property(paramProperty);
@@ -392,4 +407,5 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
     public Map<String, Model> getModelMap() {
         return resolveSwaggerType.getModelMap();
     }
+
 }
