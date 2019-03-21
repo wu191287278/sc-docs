@@ -84,29 +84,9 @@ Name | Description
 -Ddocs.**projectName**.basePath=/|swagger.json basePath
 -Ddocs.**projectName**.scheme=http|swagger.json scheme
 -Ddocs.**projectName**.info.title=demo|swagger.json info.title
--Dbaidu.appId=appId|[Baidu](http://api.fanyi.baidu.com/api/trans/product/desktop?req=developer) translation appid
--Dbaidu.securityKey=securityKey|[Baidu](http://api.fanyi.baidu.com/api/trans/product/desktop?req=developer) translation securityKey
 
 ## Using the environment example
 
 ```shell
-java -Ddocs.projectName.host=localhost:8080 -Ddocs.projectName.scheme=http -Ddocs.projectName.info.title=demo -Dbaidu.appId=appid -Dbaidu.securityKey=securityKey  -jar sc-docs.jar -i sourceDirectory -o outDirectory -t
-```
-
-
-## SwaggerHub environment variables
-
-Name | Description
----|---
--Dswaggerhub.owner=wu191287278|API owner
--Dswaggerhub.name=test|API name
--Dswaggerhub.version=1.0.0|API version
--Dswaggerhub.token=xxx-xxx-xxx-xxx-xxx|SwaggerHub API key
--Dswaggerhub.format=json|API definition format, json or yaml
--Dswaggerhub.isPrivate=true|Defines whether the API should be private on SwaggerHub (using true requires a paid plan)
-
-## Upload API definitions to SwaggerHub.
-
-```
-java -Dswaggerhub.owner=wu191287278 --Dswaggerhub.name=test --Dswaggerhub.version=1.0.0 -D -Dswaggerhub.token=xxx-xxx-xxx-xxx-xxx -Dswaggerhub.format=json -Dswaggerhub.isPrivate=true -jar sc-docs.jar -upload ./swagger.json
+java -Ddocs.projectName.host=localhost:8080 -Ddocs.projectName.scheme=http -Ddocs.projectName.info.title=demo -jar sc-docs.jar -i sourceDirectory -o outDirectory -t
 ```
