@@ -337,7 +337,10 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
                                 }
 
                                 if ("defaultValue".equals(pair.getNameAsString())) {
-                                    ((AbstractSerializableParameter) param).setDefault(pair.getValue().asStringLiteralExpr().asString());
+                                    Expression value = pair.getValue();
+                                    if (value.isStringLiteralExpr()) {
+                                        ((AbstractSerializableParameter) param).setDefault(value.asStringLiteralExpr().asString());
+                                    }
                                     isRequire = false;
                                 }
                             }
