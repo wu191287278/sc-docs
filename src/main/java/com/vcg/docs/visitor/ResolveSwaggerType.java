@@ -122,7 +122,14 @@ public class ResolveSwaggerType {
                 if (!declaredField.isStatic() && declaredField instanceof JavaParserFieldDeclaration) {
                     JavaParserFieldDeclaration field = (JavaParserFieldDeclaration) declaredField;
                     FieldDeclaration wrappedNode = field.getWrappedNode();
-                    Property property = resolve(resolvedType);
+                    String qualifiedName = resolvedReferenceType.getQualifiedName();
+                    String describe = resolvedType.describe();
+                    Property property;
+                    if (qualifiedName.equalsIgnoreCase(describe)) {
+                        property = new RefProperty("#/definitions/" + qualifiedName.substring(qualifiedName.lastIndexOf(".") + 1));
+                    } else {
+                        property = resolve(resolvedType);
+                    }
                     wrappedNode.getJavadocComment().ifPresent(c -> {
                         Javadoc javadoc = c.asJavadocComment().parse();
                         JavadocDescription description = javadoc.getDescription();
