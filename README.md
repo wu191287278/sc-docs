@@ -58,13 +58,13 @@ public class SearchController {
 Please follow the [installation](#installation) instruction and execute the following shell code:
 
 ```shell
-java -jar sc-docs.jar -serve ./docs
+java -jar sc-docs.jar -i sourcePath -o ./docs
 ```
 
 ## Start Server
 
 ```shell
-java -jar sc-docs.jar serve ./docs
+java -jar sc-docs.jar -serve ./docs
 ```
 
 ## Other
