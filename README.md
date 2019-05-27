@@ -2,7 +2,7 @@
 
 ## Introduction
 
-sc-docs 可以根据[Java docs规范](https://docs.oracle.com/javase/1.5.0/docs/tooldocs/windows/javadoc.html)和spring 注解, 生成 [swagger](https://swagger.io/specification/v2/) 文档 
+sc-docs 可以根据[Java docs规范](https://docs.oracle.com/javase/1.5.0/docs/tooldocs/windows/javadoc.html)和spring 注解, 生成 [swagger](https://swagger.io/specification/v2/) 文档,无需侵入到项目之中
 
 
 ## Requirements
