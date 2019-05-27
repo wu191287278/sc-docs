@@ -44,8 +44,8 @@ public class SearchController {
      * @throws 未找到用户
      * @return 用户列表
      */
-    @GetMapping(value = "searchUser")
-    public String searchUser(@RequestParam(value = "nickname") String nickname) throws NotFoundException{
+    @GetMapping(value = "user")
+    public String user(@RequestParam(value = "nickname") String nickname) throws NotFoundException{
         return "user:"+nickname;
     }
 
