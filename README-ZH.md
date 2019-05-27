@@ -31,18 +31,18 @@ curl -o sc-docs.jar -L https://github.com/wu191287278/sc-docs/releases/download/
 ## Java docs Example
 ```java
 /**
- * search api
+ * 搜索接口
  */
 @RestController
 @RequestMapping(value="/search")
 public class SearchController {
 
     /**
-     * search user
+     * 搜索用户
      *
-     * @param nickname user nickname
-     * @throws No user found
-     * @return users
+     * @param nickname 用户昵称
+     * @throws 未找到用户
+     * @return 用户列表
      */
     @GetMapping(value = "searchUser")
     public List<User> searchUser(@RequestParam(value = "nickname") String nickname) throws NotFoundException{
