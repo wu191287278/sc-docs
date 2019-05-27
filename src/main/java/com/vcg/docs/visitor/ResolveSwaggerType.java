@@ -71,6 +71,9 @@ public class ResolveSwaggerType {
 
 
         if (resolvedType.isReferenceType()) {
+            if (referencePropertyMap.containsKey(resolvedType.toString())) {
+                return referencePropertyMap.get(resolvedType.toString());
+            }
             return resolveRefProperty(resolvedType.asReferenceType());
         }
 
