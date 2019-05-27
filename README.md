@@ -58,7 +58,7 @@ public class SearchController {
 
 ```shell
 git clone https://github.com/shuzheng/zheng.git
-java -jar sc-docs.jar -i ./spring-mvc-showcase -o ./docs
+java -jar sc-docs.jar -i ./zheng -o ./docs
 ```
 
 ## 启动静态服务器
