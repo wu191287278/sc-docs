@@ -57,13 +57,13 @@ public class SearchController {
 
 
 ```shell
-java -jar sc-docs.jar -i 代码根目录(需要跟pom.xml一级) -o ./docs
+java -jar sc-docs.jar -i 代码根目录(需要跟pom.xml一级,如果是多模块 请填写顶级模块路径) -o ./docs
 ```
 
 ## 启动静态服务器
 
 ```shell
-java -jar sc-docs.jar serve ./docs
+java -jar sc-docs.jar -serve ./docs
 ```
 
 ## Other
