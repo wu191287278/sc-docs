@@ -265,11 +265,5 @@ public class Swagger2OpenApi {
         return objectMapper.readValue(objectMapper.writeValueAsBytes(value), JsonNode.class);
     }
 
-    public static void main(String[] args) throws IOException {
-        Swagger swagger = new SwaggerParser().read("/Users/wuyu/IdeaProjects/sc-docs/docs/vc-chat-api/swagger.json");
-        new Swagger2OpenApi();
-        JsonNode openApi = convert(swagger);
-        System.err.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(openApi));
-    }
 
 }

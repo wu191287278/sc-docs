@@ -334,29 +334,33 @@ public class ScSwaggerDocs {
                 log.warn(e.getMessage());
             }
             return;
-        } /*else if ("api".equals(format)) {
-            String folder = System.getProperty("java.io.tmpdir") + "/swagger-codegen/" + UUID.randomUUID().toString();
-            ClientOpts clientOpts = new ClientOpts();
-            clientOpts.setOutputDirectory(outFile.getAbsolutePath());
-            ClientOptInput clientOptInput = new ClientOptInput()
-                    .opts(clientOpts)
-                    .swagger(swagger);
-            CodegenConfig config = new ApiDocsGenerator();
-            config.additionalProperties().put("swagger", swagger);
-            config.additionalProperties().put(CodegenConstants.LIBRARY, "feign");
-            config.setOutputDir(folder);
-            clientOptInput.setConfig(config);
-            List<File> files = new DefaultGenerator()
-                    .opts(clientOptInput)
-                    .generate();
-            String docsify = templateEngine.process("docsify", new Context(Locale.CHINESE, ImmutableMap.of("title", swagger.getInfo().getTitle())));
-            FileUtils.copyDirectory(new File(folder + "/docs"), new File(outDirectory + "/api/docs"));
-            FileUtils.copyFile(new File(folder + "/README.md"), new File(outDirectory + "/api/README.md"));
-            try (FileWriter docsifyWriter = new FileWriter(outDirectory + "/api/index.html")) {
-                IOUtils.write(docsify, docsifyWriter);
+        } else if ("api".equals(format)) {
+            try {
+                String folder = System.getProperty("java.io.tmpdir") + "/swagger-codegen/" + UUID.randomUUID().toString();
+                ClientOpts clientOpts = new ClientOpts();
+                clientOpts.setOutputDirectory(outFile.getAbsolutePath());
+                ClientOptInput clientOptInput = new ClientOptInput()
+                        .opts(clientOpts)
+                        .swagger(swagger);
+                CodegenConfig config = new ApiDocsGenerator();
+                config.additionalProperties().put("swagger", swagger);
+                config.additionalProperties().put(CodegenConstants.LIBRARY, "feign");
+                config.setOutputDir(folder);
+                clientOptInput.setConfig(config);
+                List<File> files = new DefaultGenerator()
+                        .opts(clientOptInput)
+                        .generate();
+                String docsify = templateEngine.process("docsify", new Context(Locale.CHINESE, ImmutableMap.of("title", swagger.getInfo().getTitle())));
+                FileUtils.copyDirectory(new File(folder + "/docs"), new File(outDirectory + "/api/docs"));
+                FileUtils.copyFile(new File(folder + "/README.md"), new File(outDirectory + "/api/README.md"));
+                try (FileWriter docsifyWriter = new FileWriter(outDirectory + "/api/index.html")) {
+                    IOUtils.write(docsify, docsifyWriter);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             return;
-        } */ else {
+        } else {
             try (FileWriter outputStream = new FileWriter(new File(outFile, "swagger.json"));
                  FileWriter openApiOutputStream = new FileWriter(new File(outFile, "openapi.json"));
                  FileWriter redocsWriter = new FileWriter(new File(outFile, "redocs.html"));
@@ -439,8 +443,6 @@ public class ScSwaggerDocs {
 
 
     public static void main(String[] args) throws Exception {
-//        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/contest", "-o", "./docs"};
-//        args = new String[]{"-serve", "/Users/wuyu/sc-generator/docs"};
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "help"));
         options.addOption(new Option("i", "input", true, "Source directory"));

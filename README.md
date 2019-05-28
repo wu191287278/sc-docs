@@ -25,7 +25,7 @@ Then manually install the following JARs:
 ## Download
 
 ```
-curl -o sc-docs.jar -L https://github.com/wu191287278/sc-docs/releases/download/v2.3.0/sc-docs.jar
+curl -o sc-docs.jar -L https://github.com/wu191287278/sc-docs/releases/download/v2.4.0/sc-docs.jar
 ```
 
 ## Java docs Example
@@ -73,7 +73,6 @@ usage: java -jar sc-docs.jar  [-i <arg>] [-o <arg>] [-serve <arg>] [-t]
 -i,--input <arg>    Source directory
 -o,--output <arg>   Output directory
 -serve <arg>        Start server
--t,--translation    Translate description
 ```
 
 ## 支持环境变量替换swagger.json
