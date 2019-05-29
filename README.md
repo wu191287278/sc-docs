@@ -2,7 +2,7 @@
 
 ## Introduction
 
-sc-docs 可以根据[Java docs规范](https://docs.oracle.com/javase/1.5.0/docs/tooldocs/windows/javadoc.html)和spring 注解, 生成 [swagger](https://swagger.io/specification/v2/) 文档,无需侵入到项目之中
+sc-docs 可以根据[Java docs规范](https://docs.oracle.com/javase/1.5.0/docs/tooldocs/windows/javadoc.html)以及springmvc 注解,jsr 311注解 生成 [swagger](https://swagger.io/specification/v2/) 文档,无需侵入到项目之中
 
 
 ## Requirements
@@ -25,7 +25,7 @@ Then manually install the following JARs:
 ## Download
 
 ```
-curl -o sc-docs.jar -L https://github.com/wu191287278/sc-docs/releases/download/v2.4.0/sc-docs.jar
+curl -o sc-docs.jar -L https://github.com/wu191287278/sc-docs/releases/download/v2.5.0/sc-docs.jar
 ```
 
 ## Java docs Example
