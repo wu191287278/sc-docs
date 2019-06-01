@@ -149,6 +149,11 @@
             <artifactId>javax.ws.rs-api</artifactId>
             <version>2.1.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dubbo</artifactId>
+            <version>2.6.6</version>
+        </dependency>
 
 
 
@@ -159,11 +164,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven_source_plugin_version>3.0.0</maven_source_plugin_version>
-        <maven_jar_plugin_version>2.3.2</maven_jar_plugin_version>
-        <maven_install_plugin_version>2.5.2</maven_install_plugin_version>
-        <maven_deploy_plugin_version>2.7</maven_deploy_plugin_version>
-        <maven-surefire-plugin_version>2.17</maven-surefire-plugin_version>
     </properties>
 
     <build>
@@ -179,7 +179,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven_jar_plugin_version}</version>
                 <configuration>
                     <archive>
                         <addMavenDescriptor>true</addMavenDescriptor>
@@ -194,7 +193,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>${maven_source_plugin_version}</version>
                 <configuration>
                     <attach>true</attach>
                 </configuration>
@@ -210,7 +208,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin_version}</version>
                 <configuration>
                     <skipTests>true</skipTests>
                     <skip>true</skip>
@@ -218,18 +215,7 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>${maven_install_plugin_version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>${maven_deploy_plugin_version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>

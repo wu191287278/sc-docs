@@ -21,6 +21,7 @@ import com.vcg.docs.swaggerhub.SwaggerHubRequest;
 import com.vcg.docs.translate.TransApi;
 import com.vcg.docs.utils.Swagger2OpenApi;
 import com.vcg.docs.visitor.ApiDocsGenerator;
+import com.vcg.docs.visitor.DubboVisitorAdapter;
 import com.vcg.docs.visitor.JavaxRsVisitorAdapter;
 import com.vcg.docs.visitor.RestVisitorAdapter;
 import io.github.swagger2markup.GroupBy;
@@ -124,6 +125,7 @@ public class ScSwaggerDocs {
 
             final RestVisitorAdapter restVisitorAdapter = new RestVisitorAdapter();
             final JavaxRsVisitorAdapter javaxRsVisitorAdapter = new JavaxRsVisitorAdapter();
+            final DubboVisitorAdapter dubboVisitorAdapter = new DubboVisitorAdapter();
             Info info = new Info()
                     .title(this.title)
                     .description(this.description)
@@ -162,6 +164,14 @@ public class ScSwaggerDocs {
                 parseResult.ifSuccessful(r -> r.accept(restVisitorAdapter, swagger));
             }
             for (Map.Entry<String, Model> entry : restVisitorAdapter.getModelMap().entrySet()) {
+                swagger.model(entry.getKey(), entry.getValue());
+            }
+
+//
+//            for (ParseResult<CompilationUnit> parseResult : parseResults) {
+//                parseResult.ifSuccessful(r -> r.accept(dubboVisitorAdapter, swagger));
+//            }
+            for (Map.Entry<String, Model> entry : dubboVisitorAdapter.getModelMap().entrySet()) {
                 swagger.model(entry.getKey(), entry.getValue());
             }
 
@@ -457,8 +467,6 @@ public class ScSwaggerDocs {
 
     public static void main(String[] args) throws Exception {
 
-//        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/mybatis-processor-example", "-o", "/Users/wuyu/IdeaProjects/sc-docs"};
-//        args = new String[]{"-serve", "/Users/wuyu/sc-generator/docs"};
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "help"));
         options.addOption(new Option("i", "input", true, "Source directory"));
