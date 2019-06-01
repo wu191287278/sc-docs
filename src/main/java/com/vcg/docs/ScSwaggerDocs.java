@@ -467,8 +467,6 @@ public class ScSwaggerDocs {
 
     public static void main(String[] args) throws Exception {
 
-        args = new String[]{"-i", "/Users/wuyu/IdeaProjects/mybatis-processor-example", "-o", "/Users/wuyu/IdeaProjects/sc-docs"};
-//        args = new String[]{"-serve", "/Users/wuyu/sc-generator/docs"};
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "help"));
         options.addOption(new Option("i", "input", true, "Source directory"));
