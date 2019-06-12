@@ -324,9 +324,17 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
                                     .property(property);
 
                     }
-                    if (param instanceof PathParameter || param instanceof QueryParameter) {
+
+                    if (param instanceof PathParameter || param instanceof QueryParameter || param instanceof HeaderParameter) {
                         if (annotation.isSingleMemberAnnotationExpr()) {
                             param.setRequired(true);
+                            SingleMemberAnnotationExpr single = annotation.asSingleMemberAnnotationExpr();
+                            if ("value".equals(single.getNameAsString())) {
+                                String value = single.getMemberValue().asStringLiteralExpr().asString();
+                                if (StringUtils.isNotBlank(value)) {
+                                    param.setName(value);
+                                }
+                            }
                         }
 
                         if (annotation.isNormalAnnotationExpr()) {
@@ -342,6 +350,13 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
                                         ((AbstractSerializableParameter) param).setDefault(value.asStringLiteralExpr().asString());
                                     }
                                     isRequire = false;
+                                }
+
+                                if ("value".equals(pair.getNameAsString())) {
+                                    String value = pair.getValue().asStringLiteralExpr().asString();
+                                    if (StringUtils.isNotBlank(value)) {
+                                        param.setName(value);
+                                    }
                                 }
                             }
                             param.setRequired(isRequire);
