@@ -332,7 +332,7 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
                             if ("value".equals(single.getNameAsString())) {
                                 String value = single.getMemberValue().asStringLiteralExpr().asString();
                                 if (StringUtils.isNotBlank(value)) {
-                                    param.setName(value);
+                                    variableName = value;
                                 }
                             }
                         }
@@ -355,7 +355,7 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
                                 if ("value".equals(pair.getNameAsString())) {
                                     String value = pair.getValue().asStringLiteralExpr().asString();
                                     if (StringUtils.isNotBlank(value)) {
-                                        param.setName(value);
+                                        variableName = value;
                                     }
                                 }
                             }
