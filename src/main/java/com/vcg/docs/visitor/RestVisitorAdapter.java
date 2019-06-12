@@ -325,7 +325,7 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
 
                     }
 
-                    if (param instanceof PathParameter || param instanceof QueryParameter || param instanceof HeaderParameter) {
+                    if (param instanceof PathParameter || param instanceof QueryParameter || param instanceof HeaderParameter || param instanceof CookieParameter) {
                         if (annotation.isSingleMemberAnnotationExpr()) {
                             param.setRequired(true);
                             SingleMemberAnnotationExpr single = annotation.asSingleMemberAnnotationExpr();
