@@ -466,7 +466,6 @@ public class ScSwaggerDocs {
 
 
     public static void main(String[] args) throws Exception {
-
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "help"));
         options.addOption(new Option("i", "input", true, "Source directory"));
