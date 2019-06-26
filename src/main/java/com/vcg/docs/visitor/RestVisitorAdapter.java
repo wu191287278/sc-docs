@@ -271,6 +271,8 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
                 values.add(name);
             }
 
+        } else if (value instanceof NameExpr) {
+            values.add(value.asNameExpr().getName().asString());
         } else {
             values.add(value.asStringLiteralExpr().asString());
         }
@@ -330,7 +332,7 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
                             param.setRequired(true);
                             SingleMemberAnnotationExpr single = annotation.asSingleMemberAnnotationExpr();
                             if ("value".equals(single.getNameAsString())) {
-                                String value = single.getMemberValue().asStringLiteralExpr().asString();
+                                String value = getRequestParameterValue(single.getMemberValue());
                                 if (StringUtils.isNotBlank(value)) {
                                     variableName = value;
                                 }
@@ -345,15 +347,15 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
                                 }
 
                                 if ("defaultValue".equals(pair.getNameAsString())) {
-                                    Expression value = pair.getValue();
-                                    if (value.isStringLiteralExpr()) {
-                                        ((AbstractSerializableParameter) param).setDefault(value.asStringLiteralExpr().asString());
+                                    String value = getRequestParameterValue(pair.getValue());
+                                    if (StringUtils.isNotBlank(value)) {
+                                        ((AbstractSerializableParameter) param).setDefault(value);
                                     }
                                     isRequire = false;
                                 }
 
                                 if ("value".equals(pair.getNameAsString())) {
-                                    String value = pair.getValue().asStringLiteralExpr().asString();
+                                    String value = getRequestParameterValue(pair.getValue());
                                     if (StringUtils.isNotBlank(value)) {
                                         variableName = value;
                                     }
@@ -371,6 +373,23 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
 
             request.getParameters().add(param);
         }
+    }
+
+    private String getRequestParameterValue(Expression expression) {
+        if (expression.isStringLiteralExpr()) {
+            return expression.asStringLiteralExpr().asString();
+        }
+        if (expression.isNameExpr()) {
+            return expression.asNameExpr().getNameAsString();
+        }
+        if (expression.isFieldAccessExpr()) {
+            return expression.asFieldAccessExpr().getName().asString();
+        }
+
+        if (expression.isBooleanLiteralExpr()) {
+            return String.valueOf(expression.asBooleanLiteralExpr().getValue());
+        }
+        return null;
     }
 
     private void parseMethodComment(MethodDeclaration n, Request request) {
