@@ -331,11 +331,9 @@ public class RestVisitorAdapter extends VoidVisitorAdapter<Swagger> {
                         if (annotation.isSingleMemberAnnotationExpr()) {
                             param.setRequired(true);
                             SingleMemberAnnotationExpr single = annotation.asSingleMemberAnnotationExpr();
-                            if ("value".equals(single.getNameAsString())) {
-                                String value = getRequestParameterValue(single.getMemberValue());
-                                if (StringUtils.isNotBlank(value)) {
-                                    variableName = value;
-                                }
+                            String value = getRequestParameterValue(single.getMemberValue());
+                            if (StringUtils.isNotBlank(value)) {
+                                variableName = value;
                             }
                         }
 

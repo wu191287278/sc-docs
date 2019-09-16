@@ -188,17 +188,6 @@ public class ScSwaggerDocs {
                 swagger.scheme(Scheme.valueOf(scheme.toUpperCase()));
                 swagger.basePath(basePath);
                 swaggerMap.put(projectName, swagger);
-                for (Path path : swagger.getPaths().values()) {
-                    for (Operation operation : path.getOperations()) {
-                        List<String> tags = operation.getTags();
-                        if (tags != null) {
-                            pathTagNames.addAll(tags);
-                        }
-                        Map<String, List<String>> security = Stream.of("api_key", "oauth2", "basic")
-                                .collect(Collectors.toMap(s -> s, s -> new ArrayList<String>()));
-                        operation.setSecurity(Collections.singletonList(security));
-                    }
-                }
             }
 
             if (swagger.getTags() != null) {
@@ -466,6 +455,7 @@ public class ScSwaggerDocs {
 
 
     public static void main(String[] args) throws Exception {
+//        args = new String[]{"-i","/Users/wuyu/IdeaProjects/ifrabbit-graphql","-o","./docs"};
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "help"));
         options.addOption(new Option("i", "input", true, "Source directory"));
